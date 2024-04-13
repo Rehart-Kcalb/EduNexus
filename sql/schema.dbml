@@ -63,7 +63,7 @@ Table assignments {
 Table deadlines {
   id BIGSERIAL [PRIMARY KEY]
   assignments_id BIGINT [ref: > assignments.id, NOT NULL]
-  deadline DATETIME [NULL]
+  deadline TIMESTAMP [NULL]
   user_id BIGINT [ref: > users.id, NOT NULL]
 }
 

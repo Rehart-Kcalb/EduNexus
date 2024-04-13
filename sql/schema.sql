@@ -1,6 +1,6 @@
 -- SQL dump generated using DBML (dbml.dbdiagram.io)
 -- Database: PostgreSQL
--- Generated at: 2024-04-13T06:42:20.338Z
+-- Generated at: 2024-04-13T10:13:46.819Z
 
 CREATE TABLE "user_roles" (
   "id" SERIAL PRIMARY KEY,
@@ -61,7 +61,7 @@ CREATE TABLE "assignments" (
 CREATE TABLE "deadlines" (
   "id" BIGSERIAL PRIMARY KEY,
   "assignments_id" BIGINT NOT NULL,
-  "deadline" DATETIME,
+  "deadline" TIMESTAMP,
   "user_id" BIGINT NOT NULL
 );
 
