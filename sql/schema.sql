@@ -1,6 +1,6 @@
 -- SQL dump generated using DBML (dbml.dbdiagram.io)
 -- Database: PostgreSQL
--- Generated at: 2024-04-13T10:13:46.819Z
+-- Generated at: 2024-04-17T18:02:33.517Z
 
 CREATE TABLE "user_roles" (
   "id" SERIAL PRIMARY KEY,
@@ -34,7 +34,7 @@ CREATE TABLE "course_categories" (
 
 CREATE TABLE "enrollments" (
   "id" BIGSERIAL PRIMARY KEY,
-  "enrolled_on" TIMESTAMP NOT NULL,
+  "enrolled_on" DATE NOT NULL,
   "course_id" BIGINT NOT NULL,
   "user_id" BIGINT NOT NULL
 );
@@ -55,6 +55,7 @@ CREATE TABLE "assignments" (
   "module_id" BIGINT NOT NULL,
   "description" TEXT NOT NULL,
   "content" JSONB,
+  "days" int,
   "assignment_type_id" BIGINT NOT NULL
 );
 
@@ -77,7 +78,7 @@ CREATE TABLE "threads" (
   "id" BIGSERIAL PRIMARY KEY,
   "module_id" BIGINT NOT NULL,
   "title" VARCHAR(200) NOT NULL,
-  "content" TEXT,
+  "content" TEXT NOT NULL,
   "user_id" BIGINT NOT NULL
 );
 
@@ -89,7 +90,7 @@ CREATE TABLE "comments" (
 
 CREATE TABLE "rating" (
   "id" BIGSERIAL PRIMARY KEY,
-  "comment_id" BIGINT,
+  "comment_id" BIGINT NOT NULL,
   "rate" bool NOT NULL
 );
 
