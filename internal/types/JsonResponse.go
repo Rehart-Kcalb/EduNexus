@@ -17,6 +17,7 @@ func NewJsonResponse(Data any, statusCode int) *JsonResponse {
 
 func (jr *JsonResponse) Respond(w http.ResponseWriter) {
 	w.Header().Add("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(jr.statusCode)
 	err := json.NewEncoder(w).Encode(jr.Data)
 	if err != nil {
