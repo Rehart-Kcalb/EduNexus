@@ -8,7 +8,7 @@ import (
 	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/types"
 )
 
-func HandleGetCategoryCourses(DB db.Queries) http.HandlerFunc {
+func HandleGetCategoryCourses(DB *db.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		category_name := r.PathValue("category_name")
 		if category_name == "" {
@@ -20,6 +20,8 @@ func HandleGetCategoryCourses(DB db.Queries) http.HandlerFunc {
 			// TODO: Use json return error
 			return
 		}
-		types.NewJsonResponse(courses, http.StatusOK).Respond(w)
+		types.NewJsonResponse(struct {
+			Courses any `json:"courses"`
+		}{courses}, http.StatusOK).Respond(w)
 	}
 }

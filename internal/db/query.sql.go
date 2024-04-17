@@ -37,12 +37,12 @@ func (q *Queries) AllCategories(ctx context.Context) ([]string, error) {
 }
 
 const getCategoryCourses = `-- name: GetCategoryCourses :many
-SELECT
-  courses.title
+SELECT DISTINCT
+  (courses.title)
 FROM
   courses
-  LEFT JOIN course_categories cc ON courses.id = cc.course_id
-  LEFT JOIN categories ON cc.category_id = categories.id
+  INNER JOIN course_categories cc ON courses.id = cc.course_id
+  INNER JOIN categories ON cc.category_id = categories.id
 WHERE
   categories.name = $1
 `
@@ -65,4 +65,50 @@ func (q *Queries) GetCategoryCourses(ctx context.Context, name string) ([]string
 		return nil, err
 	}
 	return items, nil
+}
+
+const getMyCourses = `-- name: GetMyCourses :many
+SELECT
+  courses.title
+FROM
+  enrollments
+  INNER JOIN courses ON enrollments.course_id = courses.id
+WHERE
+  enrollments.user_id = $1
+`
+
+func (q *Queries) GetMyCourses(ctx context.Context, userID int64) ([]string, error) {
+	rows, err := q.db.Query(ctx, getMyCourses, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var title string
+		if err := rows.Scan(&title); err != nil {
+			return nil, err
+		}
+		items = append(items, title)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPasswordByLogin = `-- name: GetPasswordByLogin :one
+SELECT
+  PASSWORD
+FROM
+  users
+WHERE
+  login = $1
+`
+
+func (q *Queries) GetPasswordByLogin(ctx context.Context, login string) (string, error) {
+	row := q.db.QueryRow(ctx, getPasswordByLogin, login)
+	var password string
+	err := row.Scan(&password)
+	return password, err
 }

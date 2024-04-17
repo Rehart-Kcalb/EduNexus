@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 
@@ -13,13 +12,16 @@ import (
 )
 
 func main() {
-	conn, err := pgxpool.New(context.Background(), fmt.Sprintf("postgres://%s:%s@%s:%s/%s", os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_NAME")))
+	conn, err := pgxpool.New(context.Background(), fmt.Sprintf("postgres://%s:%s@%s:%s/%s", os.Getenv("DB_USERNAME"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_NAME")))
 	if err != nil {
-		log.Printf("Problem with database connection :%v", err)
+		fmt.Printf("Problem with database connection :%v", err)
 	}
 
 	mux := http.NewServeMux()
 	DB := db.New(conn)
 
-	mux.HandleFunc("GET /api/categories", handlers.HandleGetAllCategories(DB))
+	mux.HandleFunc("GET /api/categories/", handlers.HandleGetAllCategories(DB))
+	mux.HandleFunc("GET /api/categories/{category_name}", handlers.HandleGetCategoryCourses(DB))
+	mux.HandleFunc("GET /api/courses", handlers.HandleGetMyCourses(DB))
+	http.ListenAndServe(":8080", mux)
 }

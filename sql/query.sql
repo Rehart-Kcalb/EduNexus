@@ -5,12 +5,28 @@ FROM
   categories;
 
 -- name: GetCategoryCourses :many
-SELECT
-  courses.title
+SELECT DISTINCT
+  (courses.title)
 FROM
   courses
-  LEFT JOIN course_categories cc ON courses.id = cc.course_id
-  LEFT JOIN categories ON cc.category_id = categories.id
+  INNER JOIN course_categories cc ON courses.id = cc.course_id
+  INNER JOIN categories ON cc.category_id = categories.id
 WHERE
   categories.name = $1;
 
+-- name: GetPasswordByLogin :one
+SELECT
+  PASSWORD
+FROM
+  users
+WHERE
+  login = $1;
+
+-- name: GetMyCourses :many
+SELECT
+  courses.title
+FROM
+  enrollments
+  INNER JOIN courses ON enrollments.course_id = courses.id
+WHERE
+  enrollments.user_id = $1;

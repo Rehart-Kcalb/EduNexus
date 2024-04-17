@@ -34,7 +34,7 @@ CREATE TABLE "course_categories" (
 
 CREATE TABLE "enrollments" (
   "id" BIGSERIAL PRIMARY KEY,
-  "enrolled_on" DATE NOT NULL,
+  "enrolled_on" TIMESTAMP NOT NULL,
   "course_id" BIGINT NOT NULL,
   "user_id" BIGINT NOT NULL
 );

@@ -57,6 +57,7 @@ Table assignments {
   module_id BIGINT [NOT NULL, ref: > modules.id]
   description TEXT [NOT NULL]
   content JSONB [NULL]
+  days int [NULL]
   assignment_type_id BIGINT [ref: > assignments_types.id, NOT NULL]
 }
 
@@ -80,7 +81,7 @@ Table threads {
     id BIGSERIAL [PRIMARY KEY]
     module_id BIGINT [ref: > modules.id, NOT NULL]
     title VARCHAR(200) [NOT NULL]
-    content TEXT
+    content TEXT [NOT NULL]
     user_id BIGINT [ref: > users.id, NOT NULL]
 }
  
@@ -92,6 +93,6 @@ Table comments {
 
 Table rating {
     id BIGSERIAL [primary key]
-    comment_id BIGINT [ref: > comments.id]
+    comment_id BIGINT [ref: > comments.id, NOT NULL]
     rate bool [not null]
 }

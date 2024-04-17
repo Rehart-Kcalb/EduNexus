@@ -44,17 +44,17 @@ type CourseCategory struct {
 }
 
 type Deadline struct {
-	ID            int64       `json:"id"`
-	AssignmentsID int64       `json:"assignments_id"`
-	Deadline      interface{} `json:"deadline"`
-	UserID        int64       `json:"user_id"`
+	ID            int64            `json:"id"`
+	AssignmentsID int64            `json:"assignments_id"`
+	Deadline      pgtype.Timestamp `json:"deadline"`
+	UserID        int64            `json:"user_id"`
 }
 
 type Enrollment struct {
-	ID         int64       `json:"id"`
-	EnrolledOn pgtype.Date `json:"enrolled_on"`
-	CourseID   int64       `json:"course_id"`
-	UserID     int64       `json:"user_id"`
+	ID         int64            `json:"id"`
+	EnrolledOn pgtype.Timestamp `json:"enrolled_on"`
+	CourseID   int64            `json:"course_id"`
+	UserID     int64            `json:"user_id"`
 }
 
 type Module struct {
