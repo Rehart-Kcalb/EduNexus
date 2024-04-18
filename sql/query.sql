@@ -38,7 +38,7 @@ SELECT
   user_roles.title
 FROM
   users
-  LEFT JOIN user_roles ON user_roles.id = user_role.id
+  LEFT JOIN user_roles ON user_roles.id = users.user_role_id
 WHERE
   users.login = $1;
 

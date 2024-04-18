@@ -80,11 +80,11 @@ type Submission struct {
 }
 
 type Thread struct {
-	ID       int64  `json:"id"`
-	ModuleID int64  `json:"module_id"`
-	Title    string `json:"title"`
-	Content  string `json:"content"`
-	UserID   int64  `json:"user_id"`
+	ID       int64       `json:"id"`
+	ModuleID int64       `json:"module_id"`
+	Title    string      `json:"title"`
+	Content  pgtype.Text `json:"content"`
+	UserID   int64       `json:"user_id"`
 }
 
 type User struct {
