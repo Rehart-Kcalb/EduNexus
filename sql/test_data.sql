@@ -17,7 +17,7 @@ VALUES
   ('number');
 
 INSERT INTO
-  categories ("name")
+  categories ("name","color")
 VALUES
   ('computer science', x'fcba03'::int),
   ('biology', x'55e309'::int),
