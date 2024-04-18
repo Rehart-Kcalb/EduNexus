@@ -9,11 +9,12 @@ import (
 )
 
 type Assignment struct {
-	ID               int64  `json:"id"`
-	ModuleID         int64  `json:"module_id"`
-	Description      string `json:"description"`
-	Content          []byte `json:"content"`
-	AssignmentTypeID int64  `json:"assignment_type_id"`
+	ID               int64       `json:"id"`
+	ModuleID         int64       `json:"module_id"`
+	Description      string      `json:"description"`
+	Content          []byte      `json:"content"`
+	Days             pgtype.Int4 `json:"days"`
+	AssignmentTypeID int64       `json:"assignment_type_id"`
 }
 
 type AssignmentsType struct {
@@ -22,8 +23,9 @@ type AssignmentsType struct {
 }
 
 type Category struct {
-	ID   int64  `json:"id"`
-	Name string `json:"name"`
+	ID    int64  `json:"id"`
+	Name  string `json:"name"`
+	Color int32  `json:"color"`
 }
 
 type Comment struct {
@@ -51,10 +53,10 @@ type Deadline struct {
 }
 
 type Enrollment struct {
-	ID         int64            `json:"id"`
-	EnrolledOn pgtype.Timestamp `json:"enrolled_on"`
-	CourseID   int64            `json:"course_id"`
-	UserID     int64            `json:"user_id"`
+	ID         int64       `json:"id"`
+	EnrolledOn pgtype.Date `json:"enrolled_on"`
+	CourseID   int64       `json:"course_id"`
+	UserID     int64       `json:"user_id"`
 }
 
 type Module struct {
@@ -64,9 +66,9 @@ type Module struct {
 }
 
 type Rating struct {
-	ID        int64       `json:"id"`
-	CommentID pgtype.Int8 `json:"comment_id"`
-	Rate      bool        `json:"rate"`
+	ID        int64 `json:"id"`
+	CommentID int64 `json:"comment_id"`
+	Rate      bool  `json:"rate"`
 }
 
 type Submission struct {
@@ -78,11 +80,11 @@ type Submission struct {
 }
 
 type Thread struct {
-	ID       int64       `json:"id"`
-	ModuleID int64       `json:"module_id"`
-	Title    string      `json:"title"`
-	Content  pgtype.Text `json:"content"`
-	UserID   int64       `json:"user_id"`
+	ID       int64  `json:"id"`
+	ModuleID int64  `json:"module_id"`
+	Title    string `json:"title"`
+	Content  string `json:"content"`
+	UserID   int64  `json:"user_id"`
 }
 
 type User struct {

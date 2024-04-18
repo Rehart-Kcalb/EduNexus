@@ -7,33 +7,58 @@ package db
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const allCategories = `-- name: AllCategories :many
 SELECT
-  "name"
+  "name",
+  "color"
 FROM
   categories
 `
 
-func (q *Queries) AllCategories(ctx context.Context) ([]string, error) {
+type AllCategoriesRow struct {
+	Name  string `json:"name"`
+	Color int32  `json:"color"`
+}
+
+func (q *Queries) AllCategories(ctx context.Context) ([]AllCategoriesRow, error) {
 	rows, err := q.db.Query(ctx, allCategories)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []string
+	var items []AllCategoriesRow
 	for rows.Next() {
-		var name string
-		if err := rows.Scan(&name); err != nil {
+		var i AllCategoriesRow
+		if err := rows.Scan(&i.Name, &i.Color); err != nil {
 			return nil, err
 		}
-		items = append(items, name)
+		items = append(items, i)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 	return items, nil
+}
+
+const createUser = `-- name: CreateUser :exec
+INSERT INTO
+  users ("login", "password", "user_role_id")
+VALUES
+  ($1, $2, 1)
+`
+
+type CreateUserParams struct {
+	Login    string `json:"login"`
+	Password string `json:"password"`
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
+	_, err := q.db.Exec(ctx, createUser, arg.Login, arg.Password)
+	return err
 }
 
 const getCategoryCourses = `-- name: GetCategoryCourses :many
@@ -65,6 +90,29 @@ func (q *Queries) GetCategoryCourses(ctx context.Context, name string) ([]string
 		return nil, err
 	}
 	return items, nil
+}
+
+const getClaimsByLogin = `-- name: GetClaimsByLogin :one
+SELECT
+  users.id,
+  user_roles.title
+FROM
+  users
+  LEFT JOIN user_roles ON user_roles.id = user_role.id
+WHERE
+  users.login = $1
+`
+
+type GetClaimsByLoginRow struct {
+	ID    int64       `json:"id"`
+	Title pgtype.Text `json:"title"`
+}
+
+func (q *Queries) GetClaimsByLogin(ctx context.Context, login string) (GetClaimsByLoginRow, error) {
+	row := q.db.QueryRow(ctx, getClaimsByLogin, login)
+	var i GetClaimsByLoginRow
+	err := row.Scan(&i.ID, &i.Title)
+	return i, err
 }
 
 const getMyCourses = `-- name: GetMyCourses :many

@@ -2,16 +2,16 @@ package handlers
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 	"net/http"
 
 	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/db"
 	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/types"
 	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/utils"
+	"golang.org/x/crypto/bcrypt"
 )
 
-func HandleLogin(DB *db.Queries) http.HandlerFunc {
+func HandleRegister(DB *db.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -31,38 +31,20 @@ func HandleLogin(DB *db.Queries) http.HandlerFunc {
 			}{is_password_valid.Error()}, http.StatusUnauthorized).Respond(w)
 			return
 		}
-		hash_password, err := DB.GetPasswordByLogin(context.Background(), login)
-		if err != nil {
-			types.NewJsonResponse(struct {
-				Message any `json:"error_message"`
-			}{"Problem with database"}, http.StatusInternalServerError).Respond(w)
-			return
-		}
-		if is_correct := utils.CheckPassword(password, hash_password); !is_correct {
-			types.NewJsonResponse(struct {
-				Message any `json:"error_message"`
-			}{"Password or Login is wrong"}, http.StatusUnauthorized).Respond(w)
-			return
-		}
-		// TODO: RETURN TOKEN
-		claims, err := DB.GetClaimsByLogin(context.Background(), login)
-		if err != nil {
-			types.NewJsonResponse(struct {
-				Message any `json:"error_message"`
-			}{"Problem with database"}, http.StatusInternalServerError).Respond(w)
-			return
-		}
-		token, err := json.Marshal(struct {
-			Id        int64  `json:"id"`
-			User_role string `json:"user_role"`
-		}{Id: claims.ID, User_role: claims.Title.String})
+		hashed_password, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 		if err != nil {
 			log.Println(err)
+			types.NewJsonResponse(struct {
+				Message any `json:"error_message"`
+			}{"Problem with server"}, http.StatusUnauthorized).Respond(w)
 			return
 		}
-		utils.Encrypt(&token)
-		types.NewJsonResponse(struct {
-			Token any `json:"token"`
-		}{token}, http.StatusOK).Respond(w)
+		err = DB.CreateUser(context.Background(), db.CreateUserParams{Login: login, Password: string(hashed_password)})
+		if err != nil {
+			types.NewJsonResponse(struct {
+				Message any `json:"error_message"`
+			}{"Problem with server"}, http.StatusUnauthorized).Respond(w)
+			return
+		}
 	}
 }

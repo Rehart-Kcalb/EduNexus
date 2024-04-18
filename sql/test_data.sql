@@ -19,13 +19,13 @@ VALUES
 INSERT INTO
   categories ("name")
 VALUES
-  ('computer science'),
-  ('biology'),
-  ('psychology'),
-  ('math'),
-  ('devops'),
-  ('aws'),
-  ('game development');
+  ('computer science', x'fcba03'::int),
+  ('biology', x'55e309'::int),
+  ('psychology',x'6709e3'::int),
+  ('math', x'0ec4b8'::int),
+  ('devops', x'0c49f0'::int),
+  ('aws',x'f2550c'::int),
+  ('game development',x'e61588'::int);
 
 INSERT INTO
   users (

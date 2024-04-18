@@ -15,7 +15,7 @@ func HandleGetMyCourses(DB *db.Queries) http.HandlerFunc {
 			// TODO: Handle Error
 		}
 		types.NewJsonResponse(struct {
-			Data any `json:"data"`
+			Data any `json:"courses"`
 		}{courses}, http.StatusOK).Respond(w)
 	}
 }

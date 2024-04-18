@@ -1,6 +1,7 @@
 -- name: AllCategories :many
 SELECT
-  "name"
+  "name",
+  "color"
 FROM
   categories;
 
@@ -30,3 +31,19 @@ FROM
   INNER JOIN courses ON enrollments.course_id = courses.id
 WHERE
   enrollments.user_id = $1;
+
+-- name: GetClaimsByLogin :one
+SELECT
+  users.id,
+  user_roles.title
+FROM
+  users
+  LEFT JOIN user_roles ON user_roles.id = user_role.id
+WHERE
+  users.login = $1;
+
+-- name: CreateUser :exec
+INSERT INTO
+  users ("login", "password", "user_role_id")
+VALUES
+  ($1, $2, 1);
