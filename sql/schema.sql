@@ -1,6 +1,6 @@
 -- SQL dump generated using DBML (dbml.dbdiagram.io)
 -- Database: PostgreSQL
--- Generated at: 2024-04-18T16:23:37.280Z
+-- Generated at: 2024-04-18T17:29:02.666Z
 
 CREATE TABLE "user_roles" (
   "id" SERIAL PRIMARY KEY,
@@ -79,7 +79,7 @@ CREATE TABLE "threads" (
   "id" BIGSERIAL PRIMARY KEY,
   "module_id" BIGINT NOT NULL,
   "title" VARCHAR(200) NOT NULL,
-  "content" TEXT NOT NULL,
+  "content" TEXT,
   "user_id" BIGINT NOT NULL
 );
 

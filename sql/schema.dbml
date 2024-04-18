@@ -82,7 +82,7 @@ Table threads {
     id BIGSERIAL [PRIMARY KEY]
     module_id BIGINT [ref: > modules.id, NOT NULL]
     title VARCHAR(200) [NOT NULL]
-    content TEXT [NOT NULL]
+    content TEXT [NULL]
     user_id BIGINT [ref: > users.id, NOT NULL]
 }
  

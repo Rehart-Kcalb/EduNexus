@@ -36,8 +36,8 @@ INSERT INTO
     "surname"
   )
 VALUES
-  ('user1', '12345678', 1, 'jonh', 'doe'),
-  ('admin1', '12345678', 2, '', '');
+  ('user1', '$2a$10$5M9QLhMVsHHPts39asoYz.E23IqCQXHnkDpLf3kEXHPEBaUhcvRua', 1, 'jonh', 'doe'),
+  ('admin1', '$2a$10$5M9QLhMVsHHPts39asoYz.E23IqCQXHnkDpLf3kEXHPEBaUhcvRua', 2, '', '');
 
 INSERT INTO
   courses (title, description)
