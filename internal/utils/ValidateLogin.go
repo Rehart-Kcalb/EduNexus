@@ -10,7 +10,7 @@ func ValidateLogin(login string) error {
 		return errors.New("Login too long, length <= 32")
 	}
 
-	if hasNonPatternChars(login, "[^a-z]") {
+	if HasNonPatternChars(login, "[^a-z]") {
 		return errors.New("Must be only latin characters")
 	}
 
