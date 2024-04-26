@@ -1,21 +1,30 @@
 package middleware
 
-import "net/http"
+import (
+	"context"
+	"encoding/json"
+	"net/http"
+
+	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/types"
+	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/utils"
+)
 
 func Auth(handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("Authorization")
-		if token == "" {
-			// TODO: Add redirect
-		}
 		if len(token) < len("Bearer") {
-			// TODO: Add redirect
+			w.Header().Add("Location", "localhost/api/login")
+			return
 		}
 		if is_valid := VerifyToken(token); !is_valid {
-			// TODO: Add redirect
+			w.Header().Add("Location", "localhost/api/login")
+			return
 		}
-		claims := "Sigma"
-		w.Header().Add("Claims", claims)
+		crypto := []byte(token[len("Bearer"):])
+		utils.Decrypt((&(crypto)))
+		var claims types.Claims
+		json.Unmarshal([]byte(crypto), &claims)
+		r.WithContext(context.WithValue(r.Context(), "id", claims.Id))
 		handler(w, r)
 	}
 }

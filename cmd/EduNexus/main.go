@@ -8,6 +8,7 @@ import (
 
 	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/db"
 	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/handlers"
+	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -22,7 +23,7 @@ func main() {
 
 	mux.HandleFunc("GET /api/categories/", handlers.HandleGetAllCategories(DB))
 	mux.HandleFunc("GET /api/categories/{category_name}", handlers.HandleGetCategoryCourses(DB))
-	mux.HandleFunc("GET /api/courses", handlers.HandleGetMyCourses(DB))
+	mux.HandleFunc("GET /api/courses", middleware.Auth(handlers.HandleGetMyCourses(DB)))
 	mux.HandleFunc("POST /api/login", handlers.HandleLogin(DB))
 	mux.HandleFunc("POST /api/register", handlers.HandleRegister(DB))
 	http.ListenAndServe(":8080", mux)

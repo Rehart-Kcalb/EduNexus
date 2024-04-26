@@ -17,14 +17,15 @@ VALUES
   ('number');
 
 INSERT INTO
-  categories ("name","color")
+  categories ("name", "color")
 VALUES
-  ('computer science', x'fcba03'::int),
-  ('math', x'0ec4b8'::int), ('biology', x'55e309'::int),
-  ('psychology',x'6709e3'::int),
-  ('devops', x'0c49f0'::int),
-  ('aws',x'f2550c'::int),
-  ('game development',x'e61588'::int);
+  ('computer science', x'fcba03'::INT),
+  ('math', x'0ec4b8'::INT),
+  ('biology', x'55e309'::INT),
+  ('psychology', x'6709e3'::INT),
+  ('devops', x'0c49f0'::INT),
+  ('aws', x'f2550c'::INT),
+  ('game development', x'e61588'::INT);
 
 INSERT INTO
   users (
@@ -35,8 +36,20 @@ INSERT INTO
     "surname"
   )
 VALUES
-  ('useruseruser', '$2a$10$5M9QLhMVsHHPts39asoYz.E23IqCQXHnkDpLf3kEXHPEBaUhcvRua', 1, 'jonh', 'doe'),
-  ('adminadmin', '$2a$10$5M9QLhMVsHHPts39asoYz.E23IqCQXHnkDpLf3kEXHPEBaUhcvRua', 2, '', '');
+  (
+    'useruseruser',
+    '$2a$10$5M9QLhMVsHHPts39asoYz.E23IqCQXHnkDpLf3kEXHPEBaUhcvRua',
+    1,
+    'jonh',
+    'doe'
+  ),
+  (
+    'adminadmin',
+    '$2a$10$5M9QLhMVsHHPts39asoYz.E23IqCQXHnkDpLf3kEXHPEBaUhcvRua',
+    2,
+    '',
+    ''
+  );
 
 INSERT INTO
   courses (title, description)

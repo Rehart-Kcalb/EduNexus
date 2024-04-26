@@ -10,7 +10,8 @@ import (
 
 func HandleGetMyCourses(DB *db.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		courses, err := DB.GetMyCourses(context.Background(), 1)
+		user_id := r.Context().Value("id").(int64)
+		courses, err := DB.GetMyCourses(context.Background(), user_id)
 		if err != nil {
 			// TODO: Handle Error
 		}
