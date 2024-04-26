@@ -13,11 +13,11 @@ func Auth(handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("Authorization")
 		if len(token) < len("Bearer") {
-			w.Header().Add("Location", "localhost/api/login")
+			http.Redirect(w, r, "login", 301)
 			return
 		}
 		if is_valid := VerifyToken(token); !is_valid {
-			w.Header().Add("Location", "localhost/api/login")
+			w.Header().Add("Location", "/login")
 			return
 		}
 		crypto := []byte(token[len("Bearer"):])
