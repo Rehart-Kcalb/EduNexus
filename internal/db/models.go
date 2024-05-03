@@ -42,13 +42,13 @@ type Course struct {
 }
 
 type CourseCategory struct {
-	CourseID   pgtype.Int8 `json:"course_id"`
-	CategoryID pgtype.Int8 `json:"category_id"`
+	CourseID   int64 `json:"course_id"`
+	CategoryID int64 `json:"category_id"`
 }
 
 type CourseTeacher struct {
-	UserID   pgtype.Int8 `json:"user_id"`
-	CourseID pgtype.Int8 `json:"course_id"`
+	UserID   int64 `json:"user_id"`
+	CourseID int64 `json:"course_id"`
 }
 
 type Deadline struct {

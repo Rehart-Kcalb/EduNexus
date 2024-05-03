@@ -31,6 +31,8 @@ func main() {
 	mux.HandleFunc("POST /api/login", handlers.HandleLogin(DB))
 	mux.HandleFunc("POST /api/register", handlers.HandleRegister(DB))
 	mux.HandleFunc("GET /api/courses/", handlers.HandleGetCourses(DB))
-	mux.HandleFunc("GET /api/courses/{course_name}", (handlers.HandleGetCourseModules(DB)))
+	mux.HandleFunc("GET /api/courses/{course_name}/", handlers.HandleGetCourseInfo(DB))
+	mux.HandleFunc("GET /api/courses/{course_name}/modules", (handlers.HandleGetCourseModules(DB)))
+	mux.HandleFunc("POST /api/courses/{course_name}", middleware.Auth(handlers.HandleEnrollCourse(DB)))
 	http.ListenAndServe(":8080", handler)
 }

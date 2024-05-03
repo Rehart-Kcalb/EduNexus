@@ -32,13 +32,13 @@ Table courses {
 }
 
 Table  course_teachers{
-  user_id BIGINT [ref: > users.id]
-  course_id BIGINT [ref: > courses.id]
+  user_id BIGINT [ref: > users.id, not null]
+  course_id BIGINT [ref: > courses.id, not null]
 }
 
 Table course_categories {
-  course_id BIGINT [ref: > courses.id]
-  category_id BIGINT [ref: > categories.id]
+  course_id BIGINT [ref: > courses.id, not null]
+  category_id BIGINT [ref: > categories.id, not null]
 }
 
 Table enrollments {

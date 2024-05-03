@@ -69,5 +69,50 @@ WHERE
   users.id = courses.course_provider;
 
 -- name: GetCourseModules :many
-SELECT modules.title FROM modules 
-inner join courses on courses.id = modules.course_id where courses.title = $1;
+SELECT
+  modules.title
+FROM
+  modules
+  INNER JOIN courses ON courses.id = modules.course_id
+WHERE
+  courses.title = $1;
+
+-- name: EnrollIntoCourse :exec
+INSERT INTO
+  enrollments (course_id, user_id, enrolled_on)
+VALUES
+  (
+    (
+      SELECT
+        id
+      FROM
+        courses
+      WHERE
+        title = $1
+      LIMIT
+        1
+    ),
+    $2,
+    NOW()
+  );
+
+-- name: GetCourseTeachers :many 
+SELECT
+  u.firstname,u.surname
+FROM
+  courses
+  INNER JOIN course_teachers ct ON ct.course_id = courses.id 
+  inner join users u on u.id = ct.user_id
+  where ct.course_id = $1;
+
+-- name: GetCourseEnrolledAmount :one
+select count(id) from enrollments where enrollments.course_id = $1;
+
+-- name: GetCourseId :one 
+select id from courses where title = $1 limit 1;
+
+-- name: GetCourseDetails :one
+SELECT
+  c.description,c.id
+FROM
+  courses c where c.id = $1;

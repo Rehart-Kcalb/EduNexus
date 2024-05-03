@@ -61,6 +61,36 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
 	return err
 }
 
+const enrollIntoCourse = `-- name: EnrollIntoCourse :exec
+INSERT INTO
+  enrollments (course_id, user_id, enrolled_on)
+VALUES
+  (
+    (
+      SELECT
+        id
+      FROM
+        courses
+      WHERE
+        title = $1
+      LIMIT
+        1
+    ),
+    $2,
+    NOW()
+  )
+`
+
+type EnrollIntoCourseParams struct {
+	Title  string `json:"title"`
+	UserID int64  `json:"user_id"`
+}
+
+func (q *Queries) EnrollIntoCourse(ctx context.Context, arg EnrollIntoCourseParams) error {
+	_, err := q.db.Exec(ctx, enrollIntoCourse, arg.Title, arg.UserID)
+	return err
+}
+
 const getCategoryCourses = `-- name: GetCategoryCourses :many
 SELECT
   DISTINCTs (courses.title)
@@ -115,9 +145,55 @@ func (q *Queries) GetClaimsByLogin(ctx context.Context, login string) (GetClaims
 	return i, err
 }
 
+const getCourseDetails = `-- name: GetCourseDetails :one
+SELECT
+  c.description,c.id
+FROM
+  courses c where c.id = $1
+`
+
+type GetCourseDetailsRow struct {
+	Description string `json:"description"`
+	ID          int64  `json:"id"`
+}
+
+func (q *Queries) GetCourseDetails(ctx context.Context, id int64) (GetCourseDetailsRow, error) {
+	row := q.db.QueryRow(ctx, getCourseDetails, id)
+	var i GetCourseDetailsRow
+	err := row.Scan(&i.Description, &i.ID)
+	return i, err
+}
+
+const getCourseEnrolledAmount = `-- name: GetCourseEnrolledAmount :one
+select count(id) from enrollments where enrollments.course_id = $1
+`
+
+func (q *Queries) GetCourseEnrolledAmount(ctx context.Context, courseID int64) (int64, error) {
+	row := q.db.QueryRow(ctx, getCourseEnrolledAmount, courseID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const getCourseId = `-- name: GetCourseId :one
+select id from courses where title = $1 limit 1
+`
+
+func (q *Queries) GetCourseId(ctx context.Context, title string) (int64, error) {
+	row := q.db.QueryRow(ctx, getCourseId, title)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
 const getCourseModules = `-- name: GetCourseModules :many
-SELECT modules.title FROM modules 
-inner join courses on courses.id = modules.course_id where courses.title = $1
+SELECT
+  modules.title
+FROM
+  modules
+  INNER JOIN courses ON courses.id = modules.course_id
+WHERE
+  courses.title = $1
 `
 
 func (q *Queries) GetCourseModules(ctx context.Context, title string) ([]string, error) {
@@ -133,6 +209,41 @@ func (q *Queries) GetCourseModules(ctx context.Context, title string) ([]string,
 			return nil, err
 		}
 		items = append(items, title)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCourseTeachers = `-- name: GetCourseTeachers :many
+SELECT
+  u.firstname,u.surname
+FROM
+  courses
+  INNER JOIN course_teachers ct ON ct.course_id = courses.id 
+  inner join users u on u.id = ct.user_id
+  where ct.course_id = $1
+`
+
+type GetCourseTeachersRow struct {
+	Firstname pgtype.Text `json:"firstname"`
+	Surname   pgtype.Text `json:"surname"`
+}
+
+func (q *Queries) GetCourseTeachers(ctx context.Context, courseID int64) ([]GetCourseTeachersRow, error) {
+	rows, err := q.db.Query(ctx, getCourseTeachers, courseID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetCourseTeachersRow
+	for rows.Next() {
+		var i GetCourseTeachersRow
+		if err := rows.Scan(&i.Firstname, &i.Surname); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
