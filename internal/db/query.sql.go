@@ -62,8 +62,8 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
 }
 
 const getCategoryCourses = `-- name: GetCategoryCourses :many
-SELECT DISTINCT
-  (courses.title)
+SELECT
+  DISTINCTs (courses.title)
 FROM
   courses
   INNER JOIN course_categories cc ON courses.id = cc.course_id
@@ -72,19 +72,19 @@ WHERE
   categories.name = $1
 `
 
-func (q *Queries) GetCategoryCourses(ctx context.Context, name string) ([]string, error) {
+func (q *Queries) GetCategoryCourses(ctx context.Context, name string) ([]interface{}, error) {
 	rows, err := q.db.Query(ctx, getCategoryCourses, name)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []string
+	var items []interface{}
 	for rows.Next() {
-		var title string
-		if err := rows.Scan(&title); err != nil {
+		var distincts interface{}
+		if err := rows.Scan(&distincts); err != nil {
 			return nil, err
 		}
-		items = append(items, title)
+		items = append(items, distincts)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -115,18 +115,13 @@ func (q *Queries) GetClaimsByLogin(ctx context.Context, login string) (GetClaims
 	return i, err
 }
 
-const getMyCourses = `-- name: GetMyCourses :many
-SELECT
-  courses.title
-FROM
-  enrollments
-  INNER JOIN courses ON enrollments.course_id = courses.id
-WHERE
-  enrollments.user_id = $1
+const getCourseModules = `-- name: GetCourseModules :many
+SELECT modules.title FROM modules 
+inner join courses on courses.id = modules.course_id where courses.title = $1
 `
 
-func (q *Queries) GetMyCourses(ctx context.Context, userID int64) ([]string, error) {
-	rows, err := q.db.Query(ctx, getMyCourses, userID)
+func (q *Queries) GetCourseModules(ctx context.Context, title string) ([]string, error) {
+	rows, err := q.db.Query(ctx, getCourseModules, title)
 	if err != nil {
 		return nil, err
 	}
@@ -138,6 +133,87 @@ func (q *Queries) GetMyCourses(ctx context.Context, userID int64) ([]string, err
 			return nil, err
 		}
 		items = append(items, title)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCourses = `-- name: GetCourses :many
+SELECT
+  courses.title,
+  users.firstname AS organization_name
+FROM
+  courses
+  LEFT JOIN users ON users.id = courses.course_provider
+WHERE
+  users.id = courses.course_provider
+`
+
+type GetCoursesRow struct {
+	Title            string      `json:"title"`
+	OrganizationName pgtype.Text `json:"organization_name"`
+}
+
+func (q *Queries) GetCourses(ctx context.Context) ([]GetCoursesRow, error) {
+	rows, err := q.db.Query(ctx, getCourses)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetCoursesRow
+	for rows.Next() {
+		var i GetCoursesRow
+		if err := rows.Scan(&i.Title, &i.OrganizationName); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getMyCourses = `-- name: GetMyCourses :many
+SELECT
+  courses.title,
+  users.firstname AS organization_name
+FROM
+  courses
+  LEFT JOIN users ON users.id = courses.course_provider
+WHERE
+  users.id = courses.course_provider
+  AND courses.id IN (
+    SELECT
+      courses.id
+    FROM
+      courses
+      INNER JOIN enrollments ON enrollments.course_id = courses.id
+    WHERE
+      enrollments.user_id = $1
+  )
+`
+
+type GetMyCoursesRow struct {
+	Title            string      `json:"title"`
+	OrganizationName pgtype.Text `json:"organization_name"`
+}
+
+func (q *Queries) GetMyCourses(ctx context.Context, userID int64) ([]GetMyCoursesRow, error) {
+	rows, err := q.db.Query(ctx, getMyCourses, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetMyCoursesRow
+	for rows.Next() {
+		var i GetMyCoursesRow
+		if err := rows.Scan(&i.Title, &i.OrganizationName); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

@@ -10,6 +10,7 @@ import (
 	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/handlers"
 	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/rs/cors"
 )
 
 func main() {
@@ -19,12 +20,17 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
+
+	Cors := cors.New(cors.Options{AllowedOrigins: []string{"*"}, AllowedHeaders: []string{"Content-Type", "Authorization"}, AllowedMethods: []string{http.MethodGet, http.MethodOptions, http.MethodHead, http.MethodPost}})
+	handler := Cors.Handler(mux)
 	DB := db.New(conn)
 
 	mux.HandleFunc("GET /api/categories/", handlers.HandleGetAllCategories(DB))
 	mux.HandleFunc("GET /api/categories/{category_name}", handlers.HandleGetCategoryCourses(DB))
-	mux.HandleFunc("GET /api/courses", middleware.Auth(handlers.HandleGetMyCourses(DB)))
+	mux.HandleFunc("GET /api/learning/", middleware.Auth(handlers.HandleGetMyCourses(DB)))
 	mux.HandleFunc("POST /api/login", handlers.HandleLogin(DB))
 	mux.HandleFunc("POST /api/register", handlers.HandleRegister(DB))
-	http.ListenAndServe(":8080", mux)
+	mux.HandleFunc("GET /api/courses/", handlers.HandleGetCourses(DB))
+	mux.HandleFunc("GET /api/courses/{course_name}", (handlers.HandleGetCourseModules(DB)))
+	http.ListenAndServe(":8080", handler)
 }

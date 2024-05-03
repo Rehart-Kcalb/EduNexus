@@ -35,7 +35,7 @@ func HandleLogin(DB *db.Queries) http.HandlerFunc {
 		if err != nil {
 			types.NewJsonResponse(struct {
 				Message any `json:"error_message"`
-			}{"Problem with database"}, http.StatusInternalServerError).Respond(w)
+			}{err.Error()}, http.StatusInternalServerError).Respond(w)
 			return
 		}
 		if is_correct := utils.CheckPassword(password, hash_password); !is_correct {
@@ -44,25 +44,25 @@ func HandleLogin(DB *db.Queries) http.HandlerFunc {
 			}{"Password or Login is wrong"}, http.StatusUnauthorized).Respond(w)
 			return
 		}
-		// TODO: RETURN TOKEN
 		claims, err := DB.GetClaimsByLogin(context.Background(), login)
 		if err != nil {
 			types.NewJsonResponse(struct {
 				Message any `json:"error_message"`
-			}{"Problem with database"}, http.StatusInternalServerError).Respond(w)
+			}{err.Error()}, http.StatusInternalServerError).Respond(w)
 			return
 		}
-		token, err := json.Marshal(struct {
-			Id        int64  `json:"id"`
-			User_role string `json:"user_role"`
-		}{Id: claims.ID, User_role: claims.Title.String})
+
+		claim := (types.NewClaims(int(claims.ID), claims.Title.String))
+		token, err := json.Marshal(*claim)
 		if err != nil {
 			log.Println(err)
 			return
 		}
+		log.Println(token)
 		utils.Encrypt(&token)
+		log.Println(token)
 		types.NewJsonResponse(struct {
 			Token any `json:"token"`
-		}{token}, http.StatusOK).Respond(w)
+		}{(token)}, http.StatusOK).Respond(w)
 	}
 }

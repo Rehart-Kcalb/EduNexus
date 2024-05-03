@@ -6,8 +6,8 @@ FROM
   categories;
 
 -- name: GetCategoryCourses :many
-SELECT DISTINCT
-  (courses.title)
+SELECT
+  DISTINCTs (courses.title)
 FROM
   courses
   INNER JOIN course_categories cc ON courses.id = cc.course_id
@@ -25,12 +25,22 @@ WHERE
 
 -- name: GetMyCourses :many
 SELECT
-  courses.title
+  courses.title,
+  users.firstname AS organization_name
 FROM
-  enrollments
-  INNER JOIN courses ON enrollments.course_id = courses.id
+  courses
+  LEFT JOIN users ON users.id = courses.course_provider
 WHERE
-  enrollments.user_id = $1;
+  users.id = courses.course_provider
+  AND courses.id IN (
+    SELECT
+      courses.id
+    FROM
+      courses
+      INNER JOIN enrollments ON enrollments.course_id = courses.id
+    WHERE
+      enrollments.user_id = $1
+  );
 
 -- name: GetClaimsByLogin :one
 SELECT
@@ -47,3 +57,17 @@ INSERT INTO
   users ("login", "password", "user_role_id")
 VALUES
   ($1, $2, 1);
+
+-- name: GetCourses :many
+SELECT
+  courses.title,
+  users.firstname AS organization_name
+FROM
+  courses
+  LEFT JOIN users ON users.id = courses.course_provider
+WHERE
+  users.id = courses.course_provider;
+
+-- name: GetCourseModules :many
+SELECT modules.title FROM modules 
+inner join courses on courses.id = modules.course_id where courses.title = $1;

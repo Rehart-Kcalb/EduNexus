@@ -1,6 +1,6 @@
 -- SQL dump generated using DBML (dbml.dbdiagram.io)
 -- Database: PostgreSQL
--- Generated at: 2024-04-18T17:29:02.666Z
+-- Generated at: 2024-05-01T22:18:38.201Z
 
 CREATE TABLE "user_roles" (
   "id" SERIAL PRIMARY KEY,
@@ -12,7 +12,7 @@ CREATE TABLE "users" (
   "login" VARCHAR(50) UNIQUE NOT NULL,
   "password" VARCHAR(60) NOT NULL,
   "surname" VARCHAR(50),
-  "firstname" VARCHAR(50),
+  "firstname" VARCHAR(100),
   "user_role_id" INT NOT NULL
 );
 
@@ -25,7 +25,13 @@ CREATE TABLE "categories" (
 CREATE TABLE "courses" (
   "id" BIGSERIAL PRIMARY KEY,
   "title" VARCHAR(100) NOT NULL,
-  "description" TEXT NOT NULL
+  "description" TEXT NOT NULL,
+  "course_provider" BIGINT NOT NULL
+);
+
+CREATE TABLE "course_teachers" (
+  "user_id" BIGINT,
+  "course_id" BIGINT
 );
 
 CREATE TABLE "course_categories" (
@@ -96,6 +102,12 @@ CREATE TABLE "rating" (
 );
 
 ALTER TABLE "users" ADD FOREIGN KEY ("user_role_id") REFERENCES "user_roles" ("id");
+
+ALTER TABLE "courses" ADD FOREIGN KEY ("course_provider") REFERENCES "users" ("id");
+
+ALTER TABLE "course_teachers" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
+
+ALTER TABLE "course_teachers" ADD FOREIGN KEY ("course_id") REFERENCES "courses" ("id");
 
 ALTER TABLE "course_categories" ADD FOREIGN KEY ("course_id") REFERENCES "courses" ("id");
 

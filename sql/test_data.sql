@@ -2,7 +2,8 @@ INSERT INTO
   user_roles (title)
 VALUES
   ('user'),
-  ('moderator');
+  ('moderator'),
+  ('organization');
 
 INSERT INTO
   assignments_types (NAME)
@@ -19,13 +20,13 @@ VALUES
 INSERT INTO
   categories ("name", "color")
 VALUES
-  ('computer science', x'fcba03'::INT),
-  ('math', x'0ec4b8'::INT),
-  ('biology', x'55e309'::INT),
-  ('psychology', x'6709e3'::INT),
-  ('devops', x'0c49f0'::INT),
-  ('aws', x'f2550c'::INT),
-  ('game development', x'e61588'::INT);
+  ('Компьютерные Наука', x'fcba03'::INT),
+  ('Математика', x'0ec4b8'::INT),
+  ('Биология', x'55e309'::INT),
+  ('Психология', x'6709e3'::INT),
+  ('Девопс', x'0c49f0'::INT),
+  ('AWS', x'f2550c'::INT),
+  ('Разработка Игр', x'e61588'::INT);
 
 INSERT INTO
   users (
@@ -49,26 +50,45 @@ VALUES
     2,
     '',
     ''
+  ),
+  (
+    'googleuniversity',
+    '$2a$10$5M9QLhMVsHHPts39asoYz.E23IqCQXHnkDpLf3kEXHPEBaUhcvRua',
+    3,
+    'Google University',
+    ''
+  ),
+(
+    'sigmauni',
+    '$2a$10$5M9QLhMVsHHPts39asoYz.E23IqCQXHnkDpLf3kEXHPEBaUhcvRua',
+    3,
+    'Сигма Университет',
+    ''
   );
 
+
 INSERT INTO
-  courses (title, description)
+  courses (title, description, course_provider)
 VALUES
   (
     'C++ programming',
-    'This course will teach you, how to write a sigma blazingly fast code'
+    'This course will teach you, how to write a sigma blazingly fast code',
+    3
   ),
   (
-    'Calculus 1',
-    'Another Calculus 1 course for idiot'
+    'Дифферинциальное Исчисление для ПТУ',
+    'Курс дифферинциального исчисления для политехнический училищ',
+    4
   ),
   (
-    'Calculus 1 with proofs',
-    'Sigma Calculus 1 course for someone with more than 2 braincells'
+    'Дифферинциальное Исчисление для вузов',
+    'Курс дифферинциального исчисления для студентов вузов по техническим специальностям',
+    4
   ),
   (
     'Python with DataScience',
-    'This course will teach the most brainrot programming language and the most high values field of usage'
+    'Этот курс научит вас самому востребованнуму языку программирования и самой высокооплачиваемой сфере использования',
+    3
   );
 
 INSERT INTO
@@ -81,6 +101,13 @@ VALUES
   (4, 2);
 
 INSERT INTO
+  course_teachers (course_id, user_id)
+VALUES
+  (1, 3), -- User 1 teach c++
+  (2, 4) -- User 1 teach calculus
+;
+
+INSERT INTO
   enrollments (enrolled_on, course_id, user_id)
 VALUES
   (NOW() - INTERVAL '7 DAY', 1, 1),
@@ -89,14 +116,14 @@ VALUES
 INSERT INTO
   modules (title, course_id)
 VALUES
-  ('Variable,basic types', 1),
-  ('Conditions and loops', 1),
-  ('Functions', 1),
-  ('Limits and continuity', 2),
-  ('Derivatives: definition and basic rules', 2),
-  ('Variable,basic types', 4),
-  ('Conditions and loops', 4),
-  ('Functions', 4);
+  ('Переменные и базовые типы', 1),
+  ('Ветвление и Циклы', 1),
+  ('Функции', 1),
+  ('Пределы и Непрерывность', 2),
+  ('Производная: Определения и правила', 2),
+  ('Переменные и базовые типы', 4),
+  ('Ветвление и Циклы', 4),
+  ('Функции', 4);
 
 INSERT INTO
   assignments (

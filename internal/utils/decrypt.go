@@ -7,5 +7,5 @@ func Decrypt(text *[]byte) {
 }
 
 func decrypt_func(elem byte) byte {
-	return elem - 5
+	return elem + 5
 }

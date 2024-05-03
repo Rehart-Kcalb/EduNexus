@@ -35,14 +35,20 @@ type Comment struct {
 }
 
 type Course struct {
-	ID          int64  `json:"id"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
+	ID             int64  `json:"id"`
+	Title          string `json:"title"`
+	Description    string `json:"description"`
+	CourseProvider int64  `json:"course_provider"`
 }
 
 type CourseCategory struct {
 	CourseID   pgtype.Int8 `json:"course_id"`
 	CategoryID pgtype.Int8 `json:"category_id"`
+}
+
+type CourseTeacher struct {
+	UserID   pgtype.Int8 `json:"user_id"`
+	CourseID pgtype.Int8 `json:"course_id"`
 }
 
 type Deadline struct {
