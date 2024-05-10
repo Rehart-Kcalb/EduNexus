@@ -98,7 +98,7 @@ VALUES
 
 -- name: GetCourseTeachers :many 
 SELECT
-  u.firstname,u.surname
+  u.firstname,u.surname,u.profile
 FROM
   courses
   INNER JOIN course_teachers ct ON ct.course_id = courses.id 
@@ -111,8 +111,18 @@ select count(id) from enrollments where enrollments.course_id = $1;
 -- name: GetCourseId :one 
 select id from courses where title = $1 limit 1;
 
+-- name: GetCourseLectures :many
+select a.* from courses c 
+left join modules m on m.course_id = c.id
+left join assignments a on a.module_id = m.id
+where  c.id = $1;
+
+-- name: GetLectureContent :one
+select * from assignments
+where assignments.id = $1;
+
 -- name: GetCourseDetails :one
 SELECT
-  c.description,c.id
+  c.description,c.id,c.image
 FROM
   courses c where c.id = $1;

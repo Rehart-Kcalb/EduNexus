@@ -15,6 +15,7 @@ Table users {
   password VARCHAR(60) [NOT NULL]
   surname VARCHAR(50) [NULL]
   firstname VARCHAR(100) [NULL]
+  profile varchar(500) [NULL]
   user_role_id INT [ref: > user_roles.id, NOT NULL]
 }
 
@@ -28,6 +29,7 @@ Table courses {
   id BIGSERIAL [PRIMARY KEY]
   title VARCHAR(100) [NOT NULL]
   description TEXT [NOT NULL]
+  image varchar(500) [NULL]
   course_provider BIGINT [ref: > users.id, not null]
 }
 
@@ -63,7 +65,7 @@ Table assignments {
   id BIGSERIAL [PRIMARY KEY]
   module_id BIGINT [NOT NULL, ref: > modules.id]
   description TEXT [NOT NULL]
-  content JSONB [NULL]
+  content text [NULL]
   days int [NULL]
   assignment_type_id BIGINT [ref: > assignments_types.id, NOT NULL]
 }

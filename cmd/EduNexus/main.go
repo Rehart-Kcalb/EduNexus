@@ -28,6 +28,8 @@ func main() {
 	mux.HandleFunc("GET /api/categories/", handlers.HandleGetAllCategories(DB))
 	mux.HandleFunc("GET /api/categories/{category_name}", handlers.HandleGetCategoryCourses(DB))
 	mux.HandleFunc("GET /api/learning/", middleware.Auth(handlers.HandleGetMyCourses(DB)))
+	mux.HandleFunc("GET /api/learning/{course_name}/", middleware.Auth(handlers.HandleGetCourseLectures(DB)))
+	mux.HandleFunc("GET /api/learning/{course_name}/{lecture_id}", middleware.Auth(handlers.HandleGetLectureContent(DB)))
 	mux.HandleFunc("POST /api/login", handlers.HandleLogin(DB))
 	mux.HandleFunc("POST /api/register", handlers.HandleRegister(DB))
 	mux.HandleFunc("GET /api/courses/", handlers.HandleGetCourses(DB))

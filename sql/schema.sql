@@ -1,6 +1,6 @@
 -- SQL dump generated using DBML (dbml.dbdiagram.io)
 -- Database: PostgreSQL
--- Generated at: 2024-05-03T16:43:05.897Z
+-- Generated at: 2024-05-10T11:27:50.279Z
 
 CREATE TABLE "user_roles" (
   "id" SERIAL PRIMARY KEY,
@@ -13,6 +13,7 @@ CREATE TABLE "users" (
   "password" VARCHAR(60) NOT NULL,
   "surname" VARCHAR(50),
   "firstname" VARCHAR(100),
+  "profile" varchar(500),
   "user_role_id" INT NOT NULL
 );
 
@@ -26,6 +27,7 @@ CREATE TABLE "courses" (
   "id" BIGSERIAL PRIMARY KEY,
   "title" VARCHAR(100) NOT NULL,
   "description" TEXT NOT NULL,
+  "image" varchar(500),
   "course_provider" BIGINT NOT NULL
 );
 
@@ -61,7 +63,7 @@ CREATE TABLE "assignments" (
   "id" BIGSERIAL PRIMARY KEY,
   "module_id" BIGINT NOT NULL,
   "description" TEXT NOT NULL,
-  "content" JSONB,
+  "content" text,
   "days" int,
   "assignment_type_id" BIGINT NOT NULL
 );

@@ -12,7 +12,7 @@ type Assignment struct {
 	ID               int64       `json:"id"`
 	ModuleID         int64       `json:"module_id"`
 	Description      string      `json:"description"`
-	Content          []byte      `json:"content"`
+	Content          pgtype.Text `json:"content"`
 	Days             pgtype.Int4 `json:"days"`
 	AssignmentTypeID int64       `json:"assignment_type_id"`
 }
@@ -35,10 +35,11 @@ type Comment struct {
 }
 
 type Course struct {
-	ID             int64  `json:"id"`
-	Title          string `json:"title"`
-	Description    string `json:"description"`
-	CourseProvider int64  `json:"course_provider"`
+	ID             int64       `json:"id"`
+	Title          string      `json:"title"`
+	Description    string      `json:"description"`
+	Image          pgtype.Text `json:"image"`
+	CourseProvider int64       `json:"course_provider"`
 }
 
 type CourseCategory struct {
@@ -99,6 +100,7 @@ type User struct {
 	Password   string      `json:"password"`
 	Surname    pgtype.Text `json:"surname"`
 	Firstname  pgtype.Text `json:"firstname"`
+	Profile    pgtype.Text `json:"profile"`
 	UserRoleID int32       `json:"user_role_id"`
 }
 
