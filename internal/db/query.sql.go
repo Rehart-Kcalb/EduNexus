@@ -411,3 +411,18 @@ func (q *Queries) GetPasswordByLogin(ctx context.Context, login string) (string,
 	err := row.Scan(&password)
 	return password, err
 }
+
+const newLecture = `-- name: NewLecture :exec
+insert into assignments (module_id,content,assignment_type_id)
+values ($1,$2,1)
+`
+
+type NewLectureParams struct {
+	ModuleID int64       `json:"module_id"`
+	Content  pgtype.Text `json:"content"`
+}
+
+func (q *Queries) NewLecture(ctx context.Context, arg NewLectureParams) error {
+	_, err := q.db.Exec(ctx, newLecture, arg.ModuleID, arg.Content)
+	return err
+}

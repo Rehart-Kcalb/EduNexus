@@ -126,3 +126,7 @@ SELECT
   c.description,c.id,c.image
 FROM
   courses c where c.id = $1;
+
+-- name: NewLecture :exec
+insert into assignments (module_id,content,assignment_type_id)
+values ($1,$2,1);
