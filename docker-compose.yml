@@ -12,8 +12,7 @@ services:
       POSTGRES_PORT: "${DB_PORT}"
       POSTGRES_INITDB_SCRIPT: "./sql/schema.sql"
     volumes:
-      - ./sql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
-      - ./sql/test_data.sql:/docker-entrypoint-initdb.d/test_data.sql
+      - postgres_data:/var/lib/postgresql/data
     ports: 
       - "${DB_PORT}:5432"
   pgadmin:
@@ -44,3 +43,4 @@ services:
 
 volumes:
   pgadmin-data:
+  postgres_data:
