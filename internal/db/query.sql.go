@@ -44,6 +44,22 @@ func (q *Queries) AllCategories(ctx context.Context) ([]AllCategoriesRow, error)
 	return items, nil
 }
 
+const checkEnrollment = `-- name: CheckEnrollment :one
+select enrolled_on from enrollments where course_id = $1 and user_id = $2
+`
+
+type CheckEnrollmentParams struct {
+	CourseID int64 `json:"course_id"`
+	UserID   int64 `json:"user_id"`
+}
+
+func (q *Queries) CheckEnrollment(ctx context.Context, arg CheckEnrollmentParams) (pgtype.Date, error) {
+	row := q.db.QueryRow(ctx, checkEnrollment, arg.CourseID, arg.UserID)
+	var enrolled_on pgtype.Date
+	err := row.Scan(&enrolled_on)
+	return enrolled_on, err
+}
+
 const createUser = `-- name: CreateUser :exec
 INSERT INTO
   users ("login", "password", "user_role_id")
@@ -66,28 +82,19 @@ INSERT INTO
   enrollments (course_id, user_id, enrolled_on)
 VALUES
   (
-    (
-      SELECT
-        id
-      FROM
-        courses
-      WHERE
-        title = $1
-      LIMIT
-        1
-    ),
+    $1,
     $2,
     NOW()
   )
 `
 
 type EnrollIntoCourseParams struct {
-	Title  string `json:"title"`
-	UserID int64  `json:"user_id"`
+	CourseID int64 `json:"course_id"`
+	UserID   int64 `json:"user_id"`
 }
 
 func (q *Queries) EnrollIntoCourse(ctx context.Context, arg EnrollIntoCourseParams) error {
-	_, err := q.db.Exec(ctx, enrollIntoCourse, arg.Title, arg.UserID)
+	_, err := q.db.Exec(ctx, enrollIntoCourse, arg.CourseID, arg.UserID)
 	return err
 }
 
@@ -188,7 +195,7 @@ func (q *Queries) GetCourseId(ctx context.Context, title string) (int64, error) 
 }
 
 const getCourseLectures = `-- name: GetCourseLectures :many
-select a.id, a.module_id, a.description, a.content, a.days, a.assignment_type_id from courses c 
+select a.id, a.module_id, a.course_id, a.title, a.description, a.content, a.days, a.assignment_type_id from courses c 
 left join modules m on m.course_id = c.id
 left join assignments a on a.module_id = m.id
 where  c.id = $1
@@ -197,6 +204,8 @@ where  c.id = $1
 type GetCourseLecturesRow struct {
 	ID               pgtype.Int8 `json:"id"`
 	ModuleID         pgtype.Int8 `json:"module_id"`
+	CourseID         pgtype.Int8 `json:"course_id"`
+	Title            pgtype.Text `json:"title"`
 	Description      pgtype.Text `json:"description"`
 	Content          pgtype.Text `json:"content"`
 	Days             pgtype.Int4 `json:"days"`
@@ -215,6 +224,8 @@ func (q *Queries) GetCourseLectures(ctx context.Context, id int64) ([]GetCourseL
 		if err := rows.Scan(
 			&i.ID,
 			&i.ModuleID,
+			&i.CourseID,
+			&i.Title,
 			&i.Description,
 			&i.Content,
 			&i.Days,
@@ -267,7 +278,7 @@ FROM
   courses
   INNER JOIN course_teachers ct ON ct.course_id = courses.id 
   inner join users u on u.id = ct.user_id
-  where ct.course_id = $1
+  where ct.course_id = $1 AND u.user_role_id = 1
 `
 
 type GetCourseTeachersRow struct {
@@ -299,21 +310,28 @@ func (q *Queries) GetCourseTeachers(ctx context.Context, courseID int64) ([]GetC
 const getCourses = `-- name: GetCourses :many
 SELECT
   courses.title,
-  users.firstname AS organization_name
+  users.firstname AS organization_name,
+  courses.image
 FROM
   courses
   LEFT JOIN users ON users.id = courses.course_provider
 WHERE
-  users.id = courses.course_provider
+  users.id = courses.course_provider LIMIT $1 OFFSET $2
 `
+
+type GetCoursesParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
 
 type GetCoursesRow struct {
 	Title            string      `json:"title"`
 	OrganizationName pgtype.Text `json:"organization_name"`
+	Image            pgtype.Text `json:"image"`
 }
 
-func (q *Queries) GetCourses(ctx context.Context) ([]GetCoursesRow, error) {
-	rows, err := q.db.Query(ctx, getCourses)
+func (q *Queries) GetCourses(ctx context.Context, arg GetCoursesParams) ([]GetCoursesRow, error) {
+	rows, err := q.db.Query(ctx, getCourses, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -321,7 +339,7 @@ func (q *Queries) GetCourses(ctx context.Context) ([]GetCoursesRow, error) {
 	var items []GetCoursesRow
 	for rows.Next() {
 		var i GetCoursesRow
-		if err := rows.Scan(&i.Title, &i.OrganizationName); err != nil {
+		if err := rows.Scan(&i.Title, &i.OrganizationName, &i.Image); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -333,7 +351,7 @@ func (q *Queries) GetCourses(ctx context.Context) ([]GetCoursesRow, error) {
 }
 
 const getLectureContent = `-- name: GetLectureContent :one
-select id, module_id, description, content, days, assignment_type_id from assignments
+select id, module_id, course_id, title, description, content, days, assignment_type_id from assignments
 where assignments.id = $1
 `
 
@@ -343,6 +361,8 @@ func (q *Queries) GetLectureContent(ctx context.Context, id int64) (Assignment, 
 	err := row.Scan(
 		&i.ID,
 		&i.ModuleID,
+		&i.CourseID,
+		&i.Title,
 		&i.Description,
 		&i.Content,
 		&i.Days,
@@ -354,6 +374,7 @@ func (q *Queries) GetLectureContent(ctx context.Context, id int64) (Assignment, 
 const getMyCourses = `-- name: GetMyCourses :many
 SELECT
   courses.title,
+  courses.image,
   users.firstname AS organization_name
 FROM
   courses
@@ -373,6 +394,7 @@ WHERE
 
 type GetMyCoursesRow struct {
 	Title            string      `json:"title"`
+	Image            pgtype.Text `json:"image"`
 	OrganizationName pgtype.Text `json:"organization_name"`
 }
 
@@ -385,7 +407,7 @@ func (q *Queries) GetMyCourses(ctx context.Context, userID int64) ([]GetMyCourse
 	var items []GetMyCoursesRow
 	for rows.Next() {
 		var i GetMyCoursesRow
-		if err := rows.Scan(&i.Title, &i.OrganizationName); err != nil {
+		if err := rows.Scan(&i.Title, &i.Image, &i.OrganizationName); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

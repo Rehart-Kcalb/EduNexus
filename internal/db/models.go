@@ -11,6 +11,8 @@ import (
 type Assignment struct {
 	ID               int64       `json:"id"`
 	ModuleID         int64       `json:"module_id"`
+	CourseID         int64       `json:"course_id"`
+	Title            string      `json:"title"`
 	Description      string      `json:"description"`
 	Content          pgtype.Text `json:"content"`
 	Days             pgtype.Int4 `json:"days"`
@@ -29,9 +31,10 @@ type Category struct {
 }
 
 type Comment struct {
-	ID      int64  `json:"id"`
-	UserID  int64  `json:"user_id"`
-	Content string `json:"content"`
+	ID       int64  `json:"id"`
+	UserID   int64  `json:"user_id"`
+	Content  string `json:"content"`
+	ThreadID int64  `json:"thread_id"`
 }
 
 type Course struct {

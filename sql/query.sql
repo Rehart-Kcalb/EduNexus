@@ -26,6 +26,7 @@ WHERE
 -- name: GetMyCourses :many
 SELECT
   courses.title,
+  courses.image,
   users.firstname AS organization_name
 FROM
   courses
@@ -61,12 +62,13 @@ VALUES
 -- name: GetCourses :many
 SELECT
   courses.title,
-  users.firstname AS organization_name
+  users.firstname AS organization_name,
+  courses.image
 FROM
   courses
   LEFT JOIN users ON users.id = courses.course_provider
 WHERE
-  users.id = courses.course_provider;
+  users.id = courses.course_provider LIMIT $1 OFFSET $2;
 
 -- name: GetCourseModules :many
 SELECT
@@ -82,16 +84,7 @@ INSERT INTO
   enrollments (course_id, user_id, enrolled_on)
 VALUES
   (
-    (
-      SELECT
-        id
-      FROM
-        courses
-      WHERE
-        title = $1
-      LIMIT
-        1
-    ),
+    $1,
     $2,
     NOW()
   );
@@ -103,7 +96,7 @@ FROM
   courses
   INNER JOIN course_teachers ct ON ct.course_id = courses.id 
   inner join users u on u.id = ct.user_id
-  where ct.course_id = $1;
+  where ct.course_id = $1 AND u.user_role_id = 1;
 
 -- name: GetCourseEnrolledAmount :one
 select count(id) from enrollments where enrollments.course_id = $1;
@@ -130,3 +123,6 @@ FROM
 -- name: NewLecture :exec
 insert into assignments (module_id,content,assignment_type_id)
 values ($1,$2,1);
+
+-- name: CheckEnrollment :one
+select enrolled_on from enrollments where course_id = $1 and user_id = $2;

@@ -10,7 +10,7 @@ import (
 
 func HandleGetCourses(DB *db.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		courses, err := DB.GetCourses(context.Background())
+		courses, err := DB.GetCourses(context.Background(), db.GetCoursesParams{Limit: 100, Offset: 0})
 		if err != nil {
 			types.NewJsonResponse("Problem with DB", http.StatusInternalServerError).Respond(w)
 			return
