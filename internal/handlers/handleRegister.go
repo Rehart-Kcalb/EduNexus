@@ -46,5 +46,8 @@ func HandleRegister(DB *db.Queries) http.HandlerFunc {
 			}{"Problem with server"}, http.StatusUnauthorized).Respond(w)
 			return
 		}
+		types.NewJsonResponse(struct {
+			Status string `json:"status"`
+		}{"success"}, http.StatusOK).Respond(w)
 	}
 }

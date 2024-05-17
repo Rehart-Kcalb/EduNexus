@@ -108,7 +108,7 @@ select id from courses where title = $1 limit 1;
 select a.* from courses c 
 left join modules m on m.course_id = c.id
 left join assignments a on a.module_id = m.id
-where  c.id = $1;
+where  c.id = $1 and a.id is not null;
 
 -- name: GetLectureContent :one
 select * from assignments
@@ -121,8 +121,8 @@ FROM
   courses c where c.id = $1;
 
 -- name: NewLecture :exec
-insert into assignments (module_id,content,assignment_type_id)
-values ($1,$2,1);
+insert into assignments (module_id,title,description,content,assignment_type_id)
+values ($1,$2,$3,$4,1);
 
 -- name: CheckEnrollment :one
 select enrolled_on from enrollments where course_id = $1 and user_id = $2;

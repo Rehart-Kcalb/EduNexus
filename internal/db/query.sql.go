@@ -198,7 +198,7 @@ const getCourseLectures = `-- name: GetCourseLectures :many
 select a.id, a.module_id, a.course_id, a.title, a.description, a.content, a.days, a.assignment_type_id from courses c 
 left join modules m on m.course_id = c.id
 left join assignments a on a.module_id = m.id
-where  c.id = $1
+where  c.id = $1 and a.id is not null
 `
 
 type GetCourseLecturesRow struct {
@@ -435,16 +435,23 @@ func (q *Queries) GetPasswordByLogin(ctx context.Context, login string) (string,
 }
 
 const newLecture = `-- name: NewLecture :exec
-insert into assignments (module_id,content,assignment_type_id)
-values ($1,$2,1)
+insert into assignments (module_id,title,description,content,assignment_type_id)
+values ($1,$2,$3,$4,1)
 `
 
 type NewLectureParams struct {
-	ModuleID int64       `json:"module_id"`
-	Content  pgtype.Text `json:"content"`
+	ModuleID    int64       `json:"module_id"`
+	Title       string      `json:"title"`
+	Description string      `json:"description"`
+	Content     pgtype.Text `json:"content"`
 }
 
 func (q *Queries) NewLecture(ctx context.Context, arg NewLectureParams) error {
-	_, err := q.db.Exec(ctx, newLecture, arg.ModuleID, arg.Content)
+	_, err := q.db.Exec(ctx, newLecture,
+		arg.ModuleID,
+		arg.Title,
+		arg.Description,
+		arg.Content,
+	)
 	return err
 }

@@ -21,11 +21,13 @@ func HandleGetCourses(DB *db.Queries) http.HandlerFunc {
 		Offset_str := r.FormValue("page")
 		limit_num, err := strconv.Atoi(Limit_str)
 		if err != nil {
-			log.Println(err)
+			limit_num = 8
+			//log.Println(err)
 		}
 		Offset_num, err := strconv.Atoi(Offset_str)
 		if err != nil {
-			log.Println(err)
+			Offset_num = 1
+			//log.Println(err)
 		}
 		Offset_num = (Offset_num - 1) * (limit_num)
 		courses, err := DB.GetCourses(context.Background(), db.GetCoursesParams{Limit: int32(limit_num), Offset: int32(Offset_num)})

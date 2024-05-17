@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   postgres:
     image: postgres:latest
@@ -26,10 +25,11 @@ services:
       - "5050:80"
     volumes:
       - pgadmin-data:/var/lib/pgadmin
+
   #edunexus:
     #container_name: "edunexus_container"
     #build:
-      #context: ""
+      #context: "."
       #dockerfile: Dockerfile
     #environment:
       #DB_NAME: "${DB_NAME}"
