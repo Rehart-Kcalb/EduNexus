@@ -7,7 +7,7 @@ FROM
 
 -- name: GetCategoryCourses :many
 SELECT
-  DISTINCTs (courses.title)
+  DISTINCT(courses.title)
 FROM
   courses
   INNER JOIN course_categories cc ON courses.id = cc.course_id
@@ -126,3 +126,12 @@ values ($1,$2,$3,$4,1);
 
 -- name: CheckEnrollment :one
 select enrolled_on from enrollments where course_id = $1 and user_id = $2;
+
+-- name: FilterCourses :many
+select * from filter($1,$2::bigint[],$3,$4);
+
+-- name: GetCategoryId :one
+select id from categories where name=$1 limit 1;
+
+-- name: CountCourses :one
+select count(id) from courses;

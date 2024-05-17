@@ -60,6 +60,17 @@ func (q *Queries) CheckEnrollment(ctx context.Context, arg CheckEnrollmentParams
 	return enrolled_on, err
 }
 
+const countCourses = `-- name: CountCourses :one
+select count(id) from courses
+`
+
+func (q *Queries) CountCourses(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, countCourses)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createUser = `-- name: CreateUser :exec
 INSERT INTO
   users ("login", "password", "user_role_id")
@@ -98,9 +109,45 @@ func (q *Queries) EnrollIntoCourse(ctx context.Context, arg EnrollIntoCoursePara
 	return err
 }
 
+const filterCourses = `-- name: FilterCourses :many
+select filter from filter($1,$2::bigint[],$3,$4)
+`
+
+type FilterCoursesParams struct {
+	TitleParam  string  `json:"title_param"`
+	Column2     []int64 `json:"column_2"`
+	LimitParam  int32   `json:"limit_param"`
+	OffsetParam int32   `json:"offset_param"`
+}
+
+func (q *Queries) FilterCourses(ctx context.Context, arg FilterCoursesParams) ([]interface{}, error) {
+	rows, err := q.db.Query(ctx, filterCourses,
+		arg.TitleParam,
+		arg.Column2,
+		arg.LimitParam,
+		arg.OffsetParam,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []interface{}
+	for rows.Next() {
+		var filter interface{}
+		if err := rows.Scan(&filter); err != nil {
+			return nil, err
+		}
+		items = append(items, filter)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getCategoryCourses = `-- name: GetCategoryCourses :many
 SELECT
-  DISTINCTs (courses.title)
+  DISTINCT(courses.title)
 FROM
   courses
   INNER JOIN course_categories cc ON courses.id = cc.course_id
@@ -109,24 +156,35 @@ WHERE
   categories.name = $1
 `
 
-func (q *Queries) GetCategoryCourses(ctx context.Context, name string) ([]interface{}, error) {
+func (q *Queries) GetCategoryCourses(ctx context.Context, name string) ([]string, error) {
 	rows, err := q.db.Query(ctx, getCategoryCourses, name)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []interface{}
+	var items []string
 	for rows.Next() {
-		var distincts interface{}
-		if err := rows.Scan(&distincts); err != nil {
+		var title string
+		if err := rows.Scan(&title); err != nil {
 			return nil, err
 		}
-		items = append(items, distincts)
+		items = append(items, title)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 	return items, nil
+}
+
+const getCategoryId = `-- name: GetCategoryId :one
+select id from categories where name=$1 limit 1
+`
+
+func (q *Queries) GetCategoryId(ctx context.Context, name string) (int64, error) {
+	row := q.db.QueryRow(ctx, getCategoryId, name)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
 }
 
 const getClaimsByLogin = `-- name: GetClaimsByLogin :one

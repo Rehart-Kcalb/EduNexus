@@ -20,6 +20,7 @@ import (
 func main() {
 	conn_string := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", os.Getenv("DB_USERNAME"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_NAME"))
 	pool := ConnectToDB(conn_string)
+	log.Println(conn_string)
 
 	Migrate(conn_string)
 
@@ -57,6 +58,7 @@ func LoadMuxWithHandlers(m *http.ServeMux, DB *db.Queries) {
 	m.HandleFunc("GET /api/courses/", handlers.HandleGetCourses(DB))
 	m.HandleFunc("GET /api/courses/{course_name}/", handlers.HandleGetCourseInfo(DB))
 	m.HandleFunc("GET /api/courses/{course_name}/modules", (handlers.HandleGetCourseModules(DB)))
+	m.HandleFunc("POST /api/filter/", (handlers.HandleFilter(DB)))
 
 	m.HandleFunc("POST /api/courses/{course_name}", middleware.Auth(handlers.HandleEnrollCourse(DB)))
 

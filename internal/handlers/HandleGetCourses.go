@@ -12,13 +12,13 @@ import (
 
 func HandleGetCourses(DB *db.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		err := r.ParseForm()
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		Limit_str := r.FormValue("perPage")
-		Offset_str := r.FormValue("page")
+		//err := r.ParseForm()
+		//if err != nil {
+		//log.Println(err)
+		//return
+		//}
+		Limit_str := r.URL.Query().Get("perPage")
+		Offset_str := r.URL.Query().Get("page")
 		limit_num, err := strconv.Atoi(Limit_str)
 		if err != nil {
 			limit_num = 8
@@ -35,8 +35,14 @@ func HandleGetCourses(DB *db.Queries) http.HandlerFunc {
 			types.NewJsonResponse("Problem with DB", http.StatusInternalServerError).Respond(w)
 			return
 		}
+		count, err := DB.CountCourses(context.Background())
+		if err != nil {
+			log.Println(err)
+			return
+		}
 		types.NewJsonResponse(struct {
-			Courses any `json:"courses"`
-		}{courses}, http.StatusOK).Respond(w)
+			Courses any   `json:"courses"`
+			Count   int64 `json:"pages"`
+		}{courses, int64(count / int64(limit_num)) + 1}, http.StatusOK).Respond(w)
 	}
 }
