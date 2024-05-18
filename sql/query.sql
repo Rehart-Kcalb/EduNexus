@@ -108,10 +108,10 @@ values ($1,$2,$3,$4,1);
 select enrolled_on from enrollments where course_id = $1 and user_id = $2;
 
 -- name: FilterCourses :many
-select * from filter($1,$2::bigint[],$3,$4);
+select * from filter($1,$2::bigint[]) limit $3 offset $4;
 
 -- name: GetCategoryId :one
 select id from categories where name=$1 limit 1;
 
 -- name: CountCourses :one
-select count(title) from filter($1,$2::bigint[],$3,$4) ;
+select count(title) from filter($1,$2::bigint[]) ;

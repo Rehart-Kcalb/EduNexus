@@ -25,18 +25,18 @@ func HandleGetCategoryCourses(DB *db.Queries) http.HandlerFunc {
 			return
 		}
 		log.Println(course_id)
-		courses, err := DB.FilterCourses(context.Background(), db.FilterCoursesParams{LimitParam: PagParams.Limit, OffsetParam: PagParams.Offset, Column2: []int64{course_id}})
+		courses, err := DB.FilterCourses(context.Background(), db.FilterCoursesParams{Limit: PagParams.Limit, Offset: PagParams.Offset, Column2: []int64{course_id}})
 		if err != nil {
 			log.Println(err)
 			return
 		}
 		log.Println(courses)
-		count, err := DB.CountCourses(context.Background(), db.CountCoursesParams{LimitParam: PagParams.Limit, OffsetParam: PagParams.Offset, Column2: []int64{course_id}})
+		count, err := DB.CountCourses(context.Background(), db.CountCoursesParams{})
 		if err != nil {
 			// TODO: error handler
 			return
 		}
-		pages := int64(math.Round(float64(count) / float64(PagParams.Limit)))
+		pages := int64(math.Ceil(float64(count) / float64(PagParams.Limit)))
 		if pages == 0 {
 			pages = 1
 		}

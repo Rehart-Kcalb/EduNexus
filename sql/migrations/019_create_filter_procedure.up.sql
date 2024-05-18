@@ -1,8 +1,6 @@
 CREATE OR REPLACE FUNCTION filter(
     title_param text, 
-    category_ids bigint[], 
-    "limit_param" int, 
-    "offset_param" int
+    category_ids bigint[]
 )
 RETURNS TABLE (
     title varchar(100),
@@ -23,9 +21,7 @@ BEGIN
             courses
             LEFT JOIN users ON users.id = courses.course_provider
         WHERE
-            users.id = courses.course_provider
-        LIMIT limit_param
-        OFFSET offset_param;
+            users.id = courses.course_provider;
     ELSE IF title_param <> '' AND array_length(category_ids, 1) IS NULL THEN
         -- Case where title_param is not empty, but category_ids is empty
         RETURN QUERY
@@ -38,9 +34,7 @@ BEGIN
             courses
             LEFT JOIN users ON users.id = courses.course_provider
         WHERE
-            courses.title ILIKE '%' || title_param || '%'
-        LIMIT limit_param
-        OFFSET offset_param;
+            courses.title ILIKE '%' || title_param || '%';
     ELSE IF title_param = '' AND array_length(category_ids, 1) IS NOT NULL THEN
         -- Case where title_param is empty, but category_ids is not empty
         RETURN QUERY
@@ -54,9 +48,7 @@ BEGIN
             LEFT JOIN users ON users.id = courses.course_provider
             Left join course_categories on courses.id = course_categories.course_id
         WHERE
-            course_categories.category_id = ANY(category_ids)
-        LIMIT limit_param
-        OFFSET offset_param;
+            course_categories.category_id = ANY(category_ids);
     ELSE
         -- Case where both title_param and category_ids are not empty
         RETURN QUERY
@@ -71,9 +63,7 @@ BEGIN
             Left join course_categories on courses.id = course_categories.course_id
         WHERE
             courses.title ILIKE '%' || title_param || '%'
-            AND course_categories.category_id = ANY(category_ids)
-        LIMIT limit_param
-        OFFSET offset_param;
+            AND course_categories.category_id = ANY(category_ids);
 	END IF;
 	END IF;
     END IF;

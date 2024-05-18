@@ -19,17 +19,18 @@ func HandleGetCourses(DB *db.Queries) http.HandlerFunc {
 		//return
 		//}
 		PagParams := utils.GetPaginationParams(r.URL.Query())
-		courses, err := DB.FilterCourses(context.Background(), db.FilterCoursesParams{LimitParam: int32(PagParams.Limit), OffsetParam: int32(PagParams.Offset)})
+		courses, err := DB.FilterCourses(context.Background(), db.FilterCoursesParams{Limit: int32(PagParams.Limit), Offset: int32(PagParams.Offset)})
 		if err != nil {
 			types.NewJsonResponse("Problem with DB", http.StatusInternalServerError).Respond(w)
 			return
 		}
-		count, err := DB.CountCourses(context.Background(), db.CountCoursesParams{LimitParam: PagParams.Limit, OffsetParam: PagParams.Offset})
+		count, err := DB.CountCourses(context.Background(), db.CountCoursesParams{})
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		pages := int64(math.Round(float64(count) / float64(PagParams.Limit)))
+		log.Println(count)
+		pages := int64(math.Ceil(float64(count) / float64(PagParams.Limit)))
 		if pages == 0 {
 			pages = 1
 		}

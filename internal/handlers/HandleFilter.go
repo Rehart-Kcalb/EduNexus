@@ -33,17 +33,17 @@ func HandleFilter(DB *db.Queries) http.HandlerFunc {
 			}
 			course_ids = append(course_ids, course_id)
 		}
-		courses, err := DB.FilterCourses(context.Background(), db.FilterCoursesParams{TitleParam: post_data.Title, Column2: course_ids, LimitParam: int32(PagParams.Limit), OffsetParam: int32(PagParams.Offset)})
+		courses, err := DB.FilterCourses(context.Background(), db.FilterCoursesParams{TitleParam: post_data.Title, Column2: course_ids, Limit: int32(PagParams.Limit), Offset: int32(PagParams.Offset)})
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		count, err := DB.CountCourses(context.Background(), db.CountCoursesParams{TitleParam: post_data.Title, Column2: course_ids, LimitParam: int32(PagParams.Limit), OffsetParam: int32(PagParams.Offset)})
+		count, err := DB.CountCourses(context.Background(), db.CountCoursesParams{TitleParam: post_data.Title, Column2: course_ids})
 		if err != nil {
 			// TODO: error handler
 			return
 		}
-		pages := int64(math.Round(float64(count) / float64(PagParams.Limit)))
+		pages := int64(math.Ceil(float64(count) / float64(PagParams.Limit)))
 		if pages == 0 {
 			pages = 1
 		}

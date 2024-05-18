@@ -61,23 +61,16 @@ func (q *Queries) CheckEnrollment(ctx context.Context, arg CheckEnrollmentParams
 }
 
 const countCourses = `-- name: CountCourses :one
-select count(title) from filter($1,$2::bigint[],$3,$4)
+select count(title) from filter($1,$2::bigint[])
 `
 
 type CountCoursesParams struct {
-	TitleParam  string  `json:"title_param"`
-	Column2     []int64 `json:"column_2"`
-	LimitParam  int32   `json:"limit_param"`
-	OffsetParam int32   `json:"offset_param"`
+	TitleParam string  `json:"title_param"`
+	Column2    []int64 `json:"column_2"`
 }
 
 func (q *Queries) CountCourses(ctx context.Context, arg CountCoursesParams) (int64, error) {
-	row := q.db.QueryRow(ctx, countCourses,
-		arg.TitleParam,
-		arg.Column2,
-		arg.LimitParam,
-		arg.OffsetParam,
-	)
+	row := q.db.QueryRow(ctx, countCourses, arg.TitleParam, arg.Column2)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -122,22 +115,22 @@ func (q *Queries) EnrollIntoCourse(ctx context.Context, arg EnrollIntoCoursePara
 }
 
 const filterCourses = `-- name: FilterCourses :many
-select title,image,organization_name,organization_logo from filter($1,$2::bigint[],$3,$4)
+select title,image,organization_name,organization_logo from filter($1,$2::bigint[]) limit $3 offset $4
 `
 
 type FilterCoursesParams struct {
-	TitleParam  string  `json:"title_param"`
-	Column2     []int64 `json:"column_2"`
-	LimitParam  int32   `json:"limit_param"`
-	OffsetParam int32   `json:"offset_param"`
+	TitleParam string  `json:"title_param"`
+	Column2    []int64 `json:"column_2"`
+	Limit      int32   `json:"limit"`
+	Offset     int32   `json:"offset"`
 }
 
 func (q *Queries) FilterCourses(ctx context.Context, arg FilterCoursesParams) ([]GetMyCoursesRow, error) {
 	rows, err := q.db.Query(ctx, filterCourses,
 		arg.TitleParam,
 		arg.Column2,
-		arg.LimitParam,
-		arg.OffsetParam,
+		arg.Limit,
+		arg.Offset,
 	)
 	if err != nil {
 		return nil, err
