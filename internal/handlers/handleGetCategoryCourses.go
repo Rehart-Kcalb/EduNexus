@@ -31,7 +31,7 @@ func HandleGetCategoryCourses(DB *db.Queries) http.HandlerFunc {
 			return
 		}
 		log.Println(courses)
-		count, err := DB.CountCourses(context.Background(), db.CountCoursesParams{})
+		count, err := DB.CountCourses(context.Background(), db.CountCoursesParams{Column2: []int64{course_id}})
 		if err != nil {
 			// TODO: error handler
 			return

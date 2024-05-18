@@ -21,7 +21,9 @@ func HandleEnrollCourse(DB *db.Queries) http.HandlerFunc {
 		// TODO: CHECK for enrollment
 		if _, err := DB.CheckEnrollment(context.Background(), db.CheckEnrollmentParams{UserID: user_id, CourseID: course_id}); err == nil {
 			// TODO: SOMETHING USER already enroll
-			log.Println("ENROLLED")
+			types.NewJsonResponse(struct {
+				Status string `json:"status"`
+			}{"already enrooled"}, http.StatusOK).Respond(w)
 			return
 		}
 		err = DB.EnrollIntoCourse(context.Background(), db.EnrollIntoCourseParams{CourseID: course_id, UserID: user_id})
