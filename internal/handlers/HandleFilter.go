@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"math"
 	"net/http"
-	"strconv"
 
 	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/db"
 	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/types"
+	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/utils"
 )
 
 func HandleFilter(DB *db.Queries) http.HandlerFunc {
@@ -17,26 +18,9 @@ func HandleFilter(DB *db.Queries) http.HandlerFunc {
 		Categories []string `json:"categories"`
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
-		Limit_str := r.URL.Query().Get("perPage")
-		Offset_str := r.URL.Query().Get("page")
-		limit_num, err := strconv.Atoi(Limit_str)
-		if err != nil {
-			limit_num = 8
-			//log.Println(err)
-		}
-		Offset_num, err := strconv.Atoi(Offset_str)
-		if err != nil {
-			Offset_num = 1
-			//log.Println(err)
-		}
-		Offset_num = (Offset_num - 1) * (limit_num)
+		PagParams := utils.GetPaginationParams(r.URL.Query())
 		var post_data PostData
-		var buff []byte = make([]byte, 1000)
-		n, err := r.Body.Read(buff)
-		if err != nil {
-			log.Println(err)
-		}
-		err = json.Unmarshal(buff[:n], &post_data)
+		err := json.NewDecoder(r.Body).Decode(&post_data)
 		if err != nil {
 			log.Println("Error while decoding" + err.Error())
 		}
@@ -49,13 +33,24 @@ func HandleFilter(DB *db.Queries) http.HandlerFunc {
 			}
 			course_ids = append(course_ids, course_id)
 		}
-		courses, err := DB.FilterCourses(context.Background(), db.FilterCoursesParams{TitleParam: post_data.Title, Column2: course_ids, LimitParam: int32(limit_num), OffsetParam: int32(Offset_num)})
+		courses, err := DB.FilterCourses(context.Background(), db.FilterCoursesParams{TitleParam: post_data.Title, Column2: course_ids, LimitParam: int32(PagParams.Limit), OffsetParam: int32(PagParams.Offset)})
 		if err != nil {
 			log.Println(err)
 			return
 		}
+		count, err := DB.CountCourses(context.Background(), db.CountCoursesParams{TitleParam: post_data.Title, Column2: course_ids, LimitParam: int32(PagParams.Limit), OffsetParam: int32(PagParams.Offset)})
+		if err != nil {
+			// TODO: error handler
+			return
+		}
+		pages := int64(math.Round(float64(count) / float64(PagParams.Limit)))
+		if pages == 0 {
+			pages = 1
+		}
 		types.NewJsonResponse(struct {
-			Courses any `json:"courses"`
-		}{courses}, http.StatusOK).Respond(w)
+			Courses any   `json:"courses"`
+			Count   int64 `json:"pages"`
+		}{courses, pages}, http.StatusOK).Respond(w)
+
 	}
 }

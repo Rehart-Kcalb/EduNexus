@@ -58,7 +58,7 @@ func LoadMuxWithHandlers(m *http.ServeMux, DB *db.Queries) {
 	m.HandleFunc("GET /api/courses/", handlers.HandleGetCourses(DB))
 	m.HandleFunc("GET /api/courses/{course_name}/", handlers.HandleGetCourseInfo(DB))
 	m.HandleFunc("GET /api/courses/{course_name}/modules", (handlers.HandleGetCourseModules(DB)))
-	m.HandleFunc("POST /api/filter/", (handlers.HandleFilter(DB)))
+	m.HandleFunc("POST /api/filter", (handlers.HandleFilter(DB)))
 
 	m.HandleFunc("POST /api/courses/{course_name}", middleware.Auth(handlers.HandleEnrollCourse(DB)))
 

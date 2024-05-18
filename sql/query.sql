@@ -5,16 +5,6 @@ SELECT
 FROM
   categories;
 
--- name: GetCategoryCourses :many
-SELECT
-  DISTINCT(courses.title)
-FROM
-  courses
-  INNER JOIN course_categories cc ON courses.id = cc.course_id
-  INNER JOIN categories ON cc.category_id = categories.id
-WHERE
-  categories.name = $1;
-
 -- name: GetPasswordByLogin :one
 SELECT
   PASSWORD
@@ -27,7 +17,8 @@ WHERE
 SELECT
   courses.title,
   courses.image,
-  users.firstname AS organization_name
+  users.firstname AS organization_name,
+  users.profile as organization_logo
 FROM
   courses
   LEFT JOIN users ON users.id = courses.course_provider
@@ -58,17 +49,6 @@ INSERT INTO
   users ("login", "password", "user_role_id")
 VALUES
   ($1, $2, 1);
-
--- name: GetCourses :many
-SELECT
-  courses.title,
-  users.firstname AS organization_name,
-  courses.image
-FROM
-  courses
-  LEFT JOIN users ON users.id = courses.course_provider
-WHERE
-  users.id = courses.course_provider LIMIT $1 OFFSET $2;
 
 -- name: GetCourseModules :many
 SELECT
@@ -134,4 +114,4 @@ select * from filter($1,$2::bigint[],$3,$4);
 select id from categories where name=$1 limit 1;
 
 -- name: CountCourses :one
-select count(id) from courses;
+select count(title) from filter($1,$2::bigint[],$3,$4) ;
