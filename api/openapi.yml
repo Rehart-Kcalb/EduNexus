@@ -1,0 +1,484 @@
+openapi: 3.0.0
+info:
+  title: EduNexus
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+paths:
+  /api/login:
+    post:
+      summary: User login
+      tags:
+        - user
+      operationId: handleLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Successful login
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+  /api/register:
+    post:
+      summary: User registration
+      tags:
+        - user
+      operationId: handleRegister
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Successful registration
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+  /api/categories/:
+    get:
+      summary: Get all categories
+      tags:
+        - course_manage
+      operationId: handleGetAllCategories
+      responses:
+        '200':
+          description: A list of categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  categories:
+                    type: array
+                    items: 
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        color:
+                          type: integer
+  /api/categories/{category_name}:
+    get:
+      summary: Get courses in a category
+      tags:
+        - course_manage
+      operationId: handleGetCategoryCourses
+      parameters:
+        - $ref: "#/components/parameters/limParam"
+        - $ref: "#/components/parameters/offsetParam"
+      responses:
+        '200':
+          description: A list of courses in the category
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  courses:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Course'
+  /api/courses/:
+    get:
+      summary: Get all courses
+      tags:
+        - course_manage
+      operationId: handleGetCourses
+      parameters:
+        - $ref: "#/components/parameters/limParam"
+        - $ref: "#/components/parameters/offsetParam"
+      responses:
+        '200':
+          description: A list of courses
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  courses:
+                    type: array
+                    items:
+                      items:
+                        $ref: '#/components/schemas/Course'
+  /api/courses/{course_name}/:
+    get:
+      summary: Get course information
+      tags:
+        - course_manage
+      operationId: handleGetCourseInfo
+      parameters:
+        - name: course_name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Course information
+  /api/courses/{course_name}/modules:
+    get:
+      summary: Get course modules
+      tags:
+        - course_manage
+      operationId: handleGetCourseModules
+      parameters:
+        - name: course_name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of course modules
+  /api/filter:
+    post:
+      summary: Filter courses
+      tags:
+        - course_manage
+      operationId: handleFilter
+      parameters:
+        - $ref: "#/components/parameters/limParam"
+        - $ref: "#/components/parameters/offsetParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                categories:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Filtered list of courses
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  courses:
+                    type: array
+                    items:
+                      items:
+                        $ref: '#/components/schemas/Course'
+  /api/courses/{course_name}:
+    post:
+      summary: Enroll in a course
+      tags:
+        - learning_manage
+      operationId: handleEnrollCourse
+      parameters:
+        - name: course_name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Enrollment successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+      security:
+        - bearerAuth: []
+  /api/learning/:
+    get:
+      summary: Get my courses
+      tags:
+        - learning_manage
+      operationId: handleGetMyCourses
+      parameters:
+        - $ref: "#/components/parameters/limParam"
+        - $ref: "#/components/parameters/offsetParam"
+      responses:
+        '200':
+          description: A list of courses the user is enrolled in
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  courses:
+                    type: array
+                    items:
+                      items:
+                        $ref: '#/components/schemas/Course'
+      security:
+        - bearerAuth: []
+  /api/learning/{course_name}/{assignment_id}:
+    get:
+      summary: Get an assignment
+      tags:
+        - learning_manage
+      operationId: handleGetAssignment
+      parameters:
+        - name: course_name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: assignment_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Assignment details
+      security:
+        - bearerAuth: []
+    post:
+      summary: Check submission
+      operationId: handleCheckSubmission
+      parameters:
+        - name: course_name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: assignment_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Submission checked
+      security:
+        - bearerAuth: []
+  /api/learning/{course_name}/{assignment_id}/{submission_id}:
+    get:
+      summary: Get content of a submission
+      tags:
+        - learning_manage
+      operationId: handleGetContentOfSubmission
+      parameters:
+        - name: course_name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: assignment_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: submission_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Submission content
+      security:
+        - bearerAuth: []
+  /api/learning/{course_name}:
+    get:
+      summary: Get course lectures
+      tags:
+        - learning_manage
+      operationId: handleGetCourseLectures
+      parameters:
+        - name: course_name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of course lectures
+      security:
+        - bearerAuth: []
+    post:
+      summary: Create assignment
+      operationId: handleCreateAssignment
+      parameters:
+        - name: course_name
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Assignment created
+      security:
+        - bearerAuth: []
+  /api/learning/{course_name}/{lecture_id}:
+    get:
+      summary: Get lecture content
+      tags:
+        - learning_manage
+      operationId: handleGetLectureContent
+      parameters:
+        - name: course_name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: lecture_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lecture content
+      security:
+        - bearerAuth: []
+  /api/teaching/:
+    get:
+      summary: Get my taught courses
+      tags:
+        - teaching_manage
+      operationId: handleGetMyTeached
+      parameters:
+        - $ref: "#/components/parameters/limParam"
+        - $ref: "#/components/parameters/offsetParam"
+      responses:
+        '200':
+          description: A list of courses the user is teaching
+      security:
+        - bearerAuth: []
+  /api/teaching/{course_name}:
+    get:
+      summary: Get course submissions
+      tags:
+        - teaching_manage
+      operationId: handleGetCourseSubmissions
+      parameters:
+        - name: course_name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of submissions for the course
+      security:
+        - bearerAuth: []
+  /api/teaching/{course_name}/{submission_id}:
+    get:
+      summary: Get submission for grading
+      tags:
+        - teaching_manage
+      operationId: handleGetSubmissionForGrading
+      parameters:
+        - name: course_name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: submission_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Submission details for grading
+      security:
+        - bearerAuth: []
+    post:
+      summary: Grade submission
+      operationId: handleGradeSubmission
+      parameters:
+        - name: course_name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: submission_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Submission graded
+      security:
+        - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Course:
+      type: object
+      properties:
+        title:
+          type: string
+        organization_logo:
+          type: string
+        organization_name:
+          type: string
+        image:
+          type: string
+  parameters:
+    limParam:
+        name: perPage
+        in: query
+        required: false
+        schema:
+          type: integer
+    offsetParam:
+        name: page
+        in: query
+        required: false
+        schema:
+          type: integer
