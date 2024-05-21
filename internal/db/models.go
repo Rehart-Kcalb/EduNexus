@@ -14,7 +14,7 @@ type Assignment struct {
 	CourseID         int64       `json:"course_id"`
 	Title            string      `json:"title"`
 	Description      string      `json:"description"`
-	Content          pgtype.Text `json:"content"`
+	Content          []byte      `json:"content"`
 	Days             pgtype.Int4 `json:"days"`
 	AssignmentTypeID int64       `json:"assignment_type_id"`
 }
@@ -82,11 +82,12 @@ type Rating struct {
 }
 
 type Submission struct {
-	ID            int64  `json:"id"`
-	AssignmentsID int64  `json:"assignments_id"`
-	DeadlineID    int64  `json:"deadline_id"`
-	Delay         int32  `json:"delay"`
-	Content       []byte `json:"content"`
+	ID           int64       `json:"id"`
+	AssignmentID int64       `json:"assignment_id"`
+	Delay        pgtype.Int4 `json:"delay"`
+	Content      []byte      `json:"content"`
+	Info         pgtype.Text `json:"info"`
+	UserID       int64       `json:"user_id"`
 }
 
 type Thread struct {

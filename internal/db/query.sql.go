@@ -76,6 +76,27 @@ func (q *Queries) CountCourses(ctx context.Context, arg CountCoursesParams) (int
 	return count, err
 }
 
+const createSubmission = `-- name: CreateSubmission :exec
+Insert into submissions(content,assignment_id,info,user_id) values ($1,$2,$3,$4)
+`
+
+type CreateSubmissionParams struct {
+	Content      []byte      `json:"content"`
+	AssignmentID int64       `json:"assignment_id"`
+	Info         pgtype.Text `json:"info"`
+	UserID       int64       `json:"user_id"`
+}
+
+func (q *Queries) CreateSubmission(ctx context.Context, arg CreateSubmissionParams) error {
+	_, err := q.db.Exec(ctx, createSubmission,
+		arg.Content,
+		arg.AssignmentID,
+		arg.Info,
+		arg.UserID,
+	)
+	return err
+}
+
 const createUser = `-- name: CreateUser :exec
 INSERT INTO
   users ("login", "password", "user_role_id")
@@ -153,6 +174,26 @@ func (q *Queries) FilterCourses(ctx context.Context, arg FilterCoursesParams) ([
 		return nil, err
 	}
 	return items, nil
+}
+
+const getAssignmentById = `-- name: GetAssignmentById :one
+select id, module_id, course_id, title, description, content, days, assignment_type_id from assignments where id = $1 limit 1
+`
+
+func (q *Queries) GetAssignmentById(ctx context.Context, id int64) (Assignment, error) {
+	row := q.db.QueryRow(ctx, getAssignmentById, id)
+	var i Assignment
+	err := row.Scan(
+		&i.ID,
+		&i.ModuleID,
+		&i.CourseID,
+		&i.Title,
+		&i.Description,
+		&i.Content,
+		&i.Days,
+		&i.AssignmentTypeID,
+	)
+	return i, err
 }
 
 const getCategoryId = `-- name: GetCategoryId :one
@@ -244,7 +285,7 @@ type GetCourseLecturesRow struct {
 	CourseID         pgtype.Int8 `json:"course_id"`
 	Title            pgtype.Text `json:"title"`
 	Description      pgtype.Text `json:"description"`
-	Content          pgtype.Text `json:"content"`
+	Content          []byte      `json:"content"`
 	Days             pgtype.Int4 `json:"days"`
 	AssignmentTypeID pgtype.Int8 `json:"assignment_type_id"`
 }
@@ -441,10 +482,10 @@ values ($1,$2,$3,$4,1)
 `
 
 type NewLectureParams struct {
-	ModuleID    int64       `json:"module_id"`
-	Title       string      `json:"title"`
-	Description string      `json:"description"`
-	Content     pgtype.Text `json:"content"`
+	ModuleID    int64  `json:"module_id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Content     []byte `json:"content"`
 }
 
 func (q *Queries) NewLecture(ctx context.Context, arg NewLectureParams) error {

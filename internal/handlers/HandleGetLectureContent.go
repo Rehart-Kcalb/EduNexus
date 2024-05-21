@@ -15,9 +15,14 @@ func HandleGetLectureContent(DB *db.Queries) http.HandlerFunc {
 		_ = course_name
 		lecture_id_str := r.PathValue("lecture_id")
 		lecture_id, err := strconv.Atoi(lecture_id_str)
+		if err != nil {
+			// TODO
+			return
+		}
 		lecture_content, err := DB.GetLectureContent(context.Background(), int64(lecture_id))
 		if err != nil {
 			// TODO
+			return
 		}
 		types.NewJsonResponse(struct {
 			LectureContent any `json:"content"`

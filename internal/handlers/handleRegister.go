@@ -10,11 +10,12 @@ import (
 	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/utils"
 	"golang.org/x/crypto/bcrypt"
 )
-
+// TODO:refactor this to use the new types.JsonResponse
 func HandleRegister(DB *db.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			types.NewJsonResponse(struct {Message any `json:"error_message"`}{"Problem with server"}, http.StatusInternalServerError).Respond(w)
+			//w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		login := r.PostFormValue("login")

@@ -114,4 +114,15 @@ select * from filter($1,$2::bigint[]) limit $3 offset $4;
 select id from categories where name=$1 limit 1;
 
 -- name: CountCourses :one
-select count(title) from filter($1,$2::bigint[]) ;
+select count(title) from filter($1,$2::bigint[]);
+
+-- name: GetAssignmentById :one
+select * from assignments where id = $1 limit 1;
+
+-- name: CreateSubmission :exec
+Insert into submissions(content,assignment_id,info,user_id) values ($1,$2,$3,$4);
+
+-- name: GetCourseLecturesByModuleId :many
+select a.* from assignments a 
+left join modules m on m.id = $1
+where a.assignment_type_id = 1;

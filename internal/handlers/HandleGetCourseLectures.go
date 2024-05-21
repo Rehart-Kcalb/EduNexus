@@ -14,10 +14,12 @@ func HandleGetCourseLectures(DB *db.Queries) http.HandlerFunc {
 		course_id, err := DB.GetCourseId(context.Background(), course_name)
 		if err != nil {
 			// TODO
+			return
 		}
 		lectures, err := DB.GetCourseLectures(context.Background(), course_id)
 		if err != nil {
 			// TODO
+			return
 		}
 		types.NewJsonResponse(struct {
 			Lectures any `json:"lectures"`

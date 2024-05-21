@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"io"
 	"log"
 	"math"
 	"net/http"
@@ -22,9 +24,14 @@ func HandleFilter(DB *db.Queries) http.HandlerFunc {
 		var post_data PostData
 		err := json.NewDecoder(r.Body).Decode(&post_data)
 		if err != nil {
-			log.Println("Error while decoding" + err.Error())
+			if errors.Is(err, io.EOF) {
+				post_data = PostData{}
+			} else {
+				log.Println("Error while decoding" + err.Error())
+			}
 		}
-		var course_ids []int64 = make([]int64, 10)
+		log.Println(post_data)
+		var course_ids []int64 = make([]int64, 0)
 		for _, name := range post_data.Categories {
 			course_id, err := DB.GetCategoryId(context.Background(), name)
 			if err != nil {
