@@ -2,16 +2,16 @@ INSERT INTO
   courses (title, description, course_provider, image)
 VALUES
   (
-    'C++ programming',
+    'Golang Programming',
     'This course will teach you, how to write a sigma blazingly fast code',
     3,
-    ''
+    'https://www.freecodecamp.org/news/content/images/2021/10/golang.png'
   ),
   (
     'Дифференциальное исчисление для ПТУ',
     'Курс дифференциального исчисления для политехнических училищ',
     4,
-    ''
+    'https://nnov.hse.ru/data/2021/03/03/1395515259/3iStock-1281244731.jpg'
   ),
   (
     'Дифференциальное исчисление для вузов',
@@ -23,79 +23,79 @@ VALUES
     'Python with DataScience',
     'Этот курс научит вас самому востребованному языку программирования и самой высокооплачиваемой сфере использования',
     3,
-    ''
+    'https://prod-discovery.edx-cdn.org/media/programs/card_images/e862af36-d4f7-401c-91ee-898753af5bb7-70c1d615d4b5.jpeg'
   ),
   (
     'Психология для домохозяек',
     'Этот курс научит вас базовым знаниям по психологии, которые помогут вам распознать манипуляции, газлайтинг и т.д.',
     4,
-    ''
+    'https://arigus.tv/video/VE/2020/JPG/1107_psih.jpg'
   ),
   (
     'Ботаника для шестиклассников',
     'Этот курс научит вас базовым знаниям по ботанике для шестиклассников',
     4,
-    ''
+    'https://n1s2.hsmedia.ru/3d/ba/bb/3dbabb56f647fd1f3345c686da462eb5/700x467_0xd42ee42d_18858425971435877123.jpeg'
   ),
   (
     'Основы Linux',
     'Курс по основам операционной системы Linux, включающий установку, настройку и основные команды',
     3,
-    ''
+    'https://timeweb.com/ru/community/article/f0/f0444421e294b9c85f50c2164f2bd27f.jpg'
   ),
   (
     'Введение в AWS',
     'Основы работы с Amazon Web Services (AWS): создание и управление облачными ресурсами',
     3,
-    ''
+    'https://a0.awsstatic.com/libra-css/images/logos/aws_logo_smile_1200x630.png'
   ),
   (
     'Docker для начинающих',
     'Этот курс научит вас основам использования Docker для контейнеризации приложений',
     3,
-    ''
+    'https://web-standards.ru/articles/docker-unboxing-1/images/cover.png'
   ),
   (
     'Математический анализ',
     'Курс по основам математического анализа для студентов технических специальностей',
     4,
-    ''
+    'https://teach-in.ru/img/hd/course/calculus-butuzov-part3.jpg?129'
   ),
   (
     'Базы данных с MySQL',
     'Изучение основ работы с реляционными базами данных на примере MySQL',
     3,
-    ''
+    'https://andreyex.ru/wp-content/uploads/2023/11/MySQL-jpg.webp'
   ),
   (
     'Web-разработка с HTML и CSS',
     'Курс по созданию веб-страниц с использованием HTML и CSS, включая адаптивный дизайн',
     3,
-    ''
+    'https://tolustar.com/wp-content/uploads/2020/02/html-css.jpg'
   ),
   (
     'Основы кибербезопасности',
     'Введение в принципы кибербезопасности и защиты информации',
     3,
-    ''
+    'https://www.allieddigital.net/in/wp-content/uploads/2023/09/Cybersecurity-Blog-Image-1024x585.jpg'
   ),
   (
     'Machine Learning с Python',
     'Изучение основ машинного обучения с использованием языка программирования Python',
     3,
-    ''
+    'https://img-b.udemycdn.com/course/480x270/5806954_502d_5.jpg'
   ),
   (
     'Проектирование баз данных',
     'Курс по проектированию и оптимизации баз данных для высоконагруженных систем',
     3,
-    ''
+    'https://bs-uploads.toptal.io/blackfish-uploads/components/seo/5923698/og_image/optimized/0712-Bad_Practices_in_Database_Design_-_Are_You_Making_These_Mistakes_Dan_Social-754bc73011e057dc76e55a44a954e0c3.png'
   ),
   (
     'Алгоритмы и структуры данных',
     'Изучение основных алгоритмов и структур данных для эффективного решения задач программирования',
     4,
-    ''
+    'https://media.hackerearth.com/blog/wp-content/uploads/2019/11/Banner-Blog-1A-1.jpg'
   ),
   (
     'Введение в искусственный интеллект',
