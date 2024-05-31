@@ -56,10 +56,10 @@ type CourseTeacher struct {
 }
 
 type Deadline struct {
-	ID            int64            `json:"id"`
-	AssignmentsID int64            `json:"assignments_id"`
-	Deadline      pgtype.Timestamp `json:"deadline"`
-	UserID        int64            `json:"user_id"`
+	ID           int64            `json:"id"`
+	AssignmentID int64            `json:"assignment_id"`
+	Deadline     pgtype.Timestamp `json:"deadline"`
+	UserID       int64            `json:"user_id"`
 }
 
 type Enrollment struct {

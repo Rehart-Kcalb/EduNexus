@@ -82,6 +82,7 @@ func handleCodeSubmission(w http.ResponseWriter, r *http.Request, assignment db.
 		Content:      []byte(`{"content":"` + codeSub1.Code + `"}`),
 		AssignmentID: assignment.ID,
 		Info:         pgtype.Text{String: fmt.Sprintf("%d/%d", testCaseNum-failCaseNum, testCaseNum), Valid: true},
+		UserID:       r.Context().Value("id").(int64),
 	})
 	if err != nil {
 		http.Error(w, "Failed to save submission to the database", http.StatusInternalServerError)
