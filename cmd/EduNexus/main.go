@@ -80,20 +80,20 @@ func LoadMuxWithHandlers(m *http.ServeMux, DB *db.Queries) {
 	m.HandleFunc("POST /api/courses/{course_name}", middleware.Auth(handlers.HandleEnrollCourse(DB)))
 
 	// **Learning Management (requires authentication)**
-	// * Gets an assignment within a course (GET /api/learning/{course_name}/{assighment_id})
-	m.HandleFunc("GET /api/learning/{course_name}/{assighment_id}", middleware.Auth(handlers.HandleGetAssignment(DB)))
-	// * Gets the content of a submitted assignment (GET /api/learning/{course_name}/{assighment_id}/{submission_id})
-	m.HandleFunc("GET /api/learning/{course_name}/{assighment_id}/{submission_id}", middleware.Auth(handlers.HandleGetContentOfSubmission(DB)))
-	// * Checks (grades?) a submitted assignment (POST /api/learning/{course_name}/{assighment_id})
-	m.HandleFunc("POST /api/learning/{course_name}/{assighment_id}", middleware.Auth(handlers.HandleCheckSubmission(DB)))
+	// * Gets an assignments for a specific course (GET /api/learning/{course_name}/assignments)
+	m.HandleFunc("GET /api/learning/{course_name}/assignments", handlers.HandleGetAssignments(DB))
+	// * Gets an assignment within a course (GET /api/learning/{course_name}/assignment/{assignment_id})
+	m.HandleFunc("GET /api/learning/{course_name}/assignments/{assignment_id}", middleware.Auth(handlers.HandleGetAssignment(DB)))
+	// * Gets the content of a submitted assignment (GET /api/learning/{course_name}/{assignment_id}/{submission_id})
+	m.HandleFunc("GET /api/learning/{course_name}/{assignment_id}/{submission_id}", middleware.Auth(handlers.HandleGetContentOfSubmission(DB)))
+	// * Checks (grades?) a submitted assignment (POST /api/learning/{course_name}/{assignment_id})
+	m.HandleFunc("POST /api/learning/{course_name}/{assignment_id}", middleware.Auth(handlers.HandleCheckSubmission(DB)))
 	// * Gets all courses a user is enrolled in (GET /api/learning/)
 	m.HandleFunc("GET /api/learning/", middleware.Auth(handlers.HandleGetMyCourses(DB)))
 	// * Gets lectures for a specific course (GET /api/learning/{course_name})
-	m.HandleFunc("GET /api/learning/{course_name}", middleware.Auth(handlers.HandleGetCourseLectures(DB)))
-	// * Creates a new assignment for a course (requires instructor privileges) (POST /api/learning/{course_name})
-	m.HandleFunc("POST /api/learning/{course_name}", middleware.Auth(handlers.HandleCreateAssignment(DB)))
-	// * Gets the content for a specific lecture (GET /api/learning/{course_name}/{lecture_id})
-	m.HandleFunc("GET /api/learning/{course_name}/{lecture_id}", middleware.Auth(handlers.HandleGetLectureContent(DB)))
+	m.HandleFunc("GET /api/learning/{course_name}/lectures", middleware.Auth(handlers.HandleGetCourseLectures(DB)))
+	// * Gets the content for a specific lecture (GET /api/learning/{course_name}/lectures/{lecture_id})
+	m.HandleFunc("GET /api/learning/{course_name}/lectures/{lecture_id}", middleware.Auth(handlers.HandleGetLectureContent(DB)))
 
 	// **Teaching functionalities (requires authentication)**
 	// * Gets all courses a user is teaching (GET /api/teaching/)
@@ -104,6 +104,8 @@ func LoadMuxWithHandlers(m *http.ServeMux, DB *db.Queries) {
 	m.HandleFunc("GET /api/teaching/{course_name}/{submission_id}", middleware.Auth(handlers.HandleGetSubmissionForGrading(DB)))
 	// * Grades a submission (POST /api/teaching/{course_name}/{submission_id})
 	m.HandleFunc("POST /api/teaching/{course_name}/{submission_id}", middleware.Auth(handlers.HandleGradeSubmission(DB)))
+	// * Creates a new assignment for a course (requires instructor privileges) (POST /api/learning/{course_name})
+	m.HandleFunc("POST /api/teachings/{course_name}/assignments", middleware.Auth(handlers.HandleCreateAssignment(DB)))
 }
 
 // ConnectToDB establishes a connection to an external PostgreSQL database using the provided connection string.
