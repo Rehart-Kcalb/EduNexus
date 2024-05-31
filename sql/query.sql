@@ -85,13 +85,13 @@ select count(id) from enrollments where enrollments.course_id = $1;
 select id from courses where title = $1 limit 1;
 
 -- name: GetCourseLectures :many
-select a.* from courses c 
+select a.title, a.id  as assignment_id from courses c 
 left join modules m on m.course_id = c.id
 left join assignments a on a.module_id = m.id
 where  c.id = $1 and a.id is not null;
 
 -- name: GetLectureContent :one
-select * from assignments
+select title, content::text from assignments
 where assignments.id = $1;
 
 -- name: GetCourseDetails :one
@@ -108,6 +108,7 @@ values ($1,$2,$3,$4,1);
 select enrolled_on from enrollments where course_id = $1 and user_id = $2;
 
 -- name: FilterCourses :many
+--select filter.title, image,organization_name, organization_logo from filter($1,$2::bigint[]) limit $3 offset $4;
 select * from filter($1,$2::bigint[]) limit $3 offset $4;
 
 -- name: GetCategoryId :one
@@ -115,6 +116,9 @@ select id from categories where name=$1 limit 1;
 
 -- name: CountCourses :one
 select count(title) from filter($1,$2::bigint[]);
+
+-- name: GetAssignments :many
+select * from assignments where course_id = $1 and assignment_type_id <> 1;
 
 -- name: GetAssignmentById :one
 select * from assignments where id = $1 limit 1;
@@ -126,3 +130,6 @@ Insert into submissions(content,assignment_id,info,user_id) values ($1,$2,$3,$4)
 select a.* from assignments a 
 left join modules m on m.id = $1
 where a.assignment_type_id = 1;
+
+-- name: CreateAssignment :exec
+Insert into assignments(module_id,course_id,title,description,content,assignment_type_id) values($1,$2,$3,$4,$5,$6);

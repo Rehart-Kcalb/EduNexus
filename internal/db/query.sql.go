@@ -76,6 +76,31 @@ func (q *Queries) CountCourses(ctx context.Context, arg CountCoursesParams) (int
 	return count, err
 }
 
+const createAssignment = `-- name: CreateAssignment :exec
+Insert into assignments(module_id,course_id,title,description,content,assignment_type_id) values($1,$2,$3,$4,$5,$6)
+`
+
+type CreateAssignmentParams struct {
+	ModuleID         int64  `json:"module_id"`
+	CourseID         int64  `json:"course_id"`
+	Title            string `json:"title"`
+	Description      string `json:"description"`
+	Content          []byte `json:"content"`
+	AssignmentTypeID int64  `json:"assignment_type_id"`
+}
+
+func (q *Queries) CreateAssignment(ctx context.Context, arg CreateAssignmentParams) error {
+	_, err := q.db.Exec(ctx, createAssignment,
+		arg.ModuleID,
+		arg.CourseID,
+		arg.Title,
+		arg.Description,
+		arg.Content,
+		arg.AssignmentTypeID,
+	)
+	return err
+}
+
 const createSubmission = `-- name: CreateSubmission :exec
 Insert into submissions(content,assignment_id,info,user_id) values ($1,$2,$3,$4)
 `
@@ -136,7 +161,7 @@ func (q *Queries) EnrollIntoCourse(ctx context.Context, arg EnrollIntoCoursePara
 }
 
 const filterCourses = `-- name: FilterCourses :many
-select title,image,organization_name,organization_logo from filter($1,$2::bigint[]) limit $3 offset $4
+select filter from filter($1,$2::bigint[]) limit $3 offset $4
 `
 
 type FilterCoursesParams struct {
@@ -146,7 +171,8 @@ type FilterCoursesParams struct {
 	Offset     int32   `json:"offset"`
 }
 
-func (q *Queries) FilterCourses(ctx context.Context, arg FilterCoursesParams) ([]GetMyCoursesRow, error) {
+// select filter.title, image,organization_name, organization_logo from filter($1,$2::bigint[]) limit $3 offset $4;
+func (q *Queries) FilterCourses(ctx context.Context, arg FilterCoursesParams) ([]interface{}, error) {
 	rows, err := q.db.Query(ctx, filterCourses,
 		arg.TitleParam,
 		arg.Column2,
@@ -157,18 +183,13 @@ func (q *Queries) FilterCourses(ctx context.Context, arg FilterCoursesParams) ([
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetMyCoursesRow
+	var items []interface{}
 	for rows.Next() {
-		var i GetMyCoursesRow
-		if err := rows.Scan(
-			&i.Title,
-			&i.Image,
-			&i.OrganizationName,
-			&i.OrganizationLogo,
-		); err != nil {
+		var filter interface{}
+		if err := rows.Scan(&filter); err != nil {
 			return nil, err
 		}
-		items = append(items, i)
+		items = append(items, filter)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -194,6 +215,39 @@ func (q *Queries) GetAssignmentById(ctx context.Context, id int64) (Assignment, 
 		&i.AssignmentTypeID,
 	)
 	return i, err
+}
+
+const getAssignments = `-- name: GetAssignments :many
+select id, module_id, course_id, title, description, content, days, assignment_type_id from assignments where course_id = $1 and assignment_type_id <> 1
+`
+
+func (q *Queries) GetAssignments(ctx context.Context, courseID int64) ([]Assignment, error) {
+	rows, err := q.db.Query(ctx, getAssignments, courseID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Assignment
+	for rows.Next() {
+		var i Assignment
+		if err := rows.Scan(
+			&i.ID,
+			&i.ModuleID,
+			&i.CourseID,
+			&i.Title,
+			&i.Description,
+			&i.Content,
+			&i.Days,
+			&i.AssignmentTypeID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getCategoryId = `-- name: GetCategoryId :one
@@ -273,21 +327,15 @@ func (q *Queries) GetCourseId(ctx context.Context, title string) (int64, error) 
 }
 
 const getCourseLectures = `-- name: GetCourseLectures :many
-select a.id, a.module_id, a.course_id, a.title, a.description, a.content, a.days, a.assignment_type_id from courses c 
+select a.title, a.id  as assignment_id from courses c 
 left join modules m on m.course_id = c.id
 left join assignments a on a.module_id = m.id
 where  c.id = $1 and a.id is not null
 `
 
 type GetCourseLecturesRow struct {
-	ID               pgtype.Int8 `json:"id"`
-	ModuleID         pgtype.Int8 `json:"module_id"`
-	CourseID         pgtype.Int8 `json:"course_id"`
-	Title            pgtype.Text `json:"title"`
-	Description      pgtype.Text `json:"description"`
-	Content          []byte      `json:"content"`
-	Days             pgtype.Int4 `json:"days"`
-	AssignmentTypeID pgtype.Int8 `json:"assignment_type_id"`
+	Title        pgtype.Text `json:"title"`
+	AssignmentID pgtype.Int8 `json:"assignment_id"`
 }
 
 func (q *Queries) GetCourseLectures(ctx context.Context, id int64) ([]GetCourseLecturesRow, error) {
@@ -299,6 +347,32 @@ func (q *Queries) GetCourseLectures(ctx context.Context, id int64) ([]GetCourseL
 	var items []GetCourseLecturesRow
 	for rows.Next() {
 		var i GetCourseLecturesRow
+		if err := rows.Scan(&i.Title, &i.AssignmentID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCourseLecturesByModuleId = `-- name: GetCourseLecturesByModuleId :many
+select a.id, a.module_id, a.course_id, a.title, a.description, a.content, a.days, a.assignment_type_id from assignments a 
+left join modules m on m.id = $1
+where a.assignment_type_id = 1
+`
+
+func (q *Queries) GetCourseLecturesByModuleId(ctx context.Context, id int64) ([]Assignment, error) {
+	rows, err := q.db.Query(ctx, getCourseLecturesByModuleId, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Assignment
+	for rows.Next() {
+		var i Assignment
 		if err := rows.Scan(
 			&i.ID,
 			&i.ModuleID,
@@ -386,23 +460,19 @@ func (q *Queries) GetCourseTeachers(ctx context.Context, courseID int64) ([]GetC
 }
 
 const getLectureContent = `-- name: GetLectureContent :one
-select id, module_id, course_id, title, description, content, days, assignment_type_id from assignments
+select title, content::text from assignments
 where assignments.id = $1
 `
 
-func (q *Queries) GetLectureContent(ctx context.Context, id int64) (Assignment, error) {
+type GetLectureContentRow struct {
+	Title   string `json:"title"`
+	Content string `json:"content"`
+}
+
+func (q *Queries) GetLectureContent(ctx context.Context, id int64) (GetLectureContentRow, error) {
 	row := q.db.QueryRow(ctx, getLectureContent, id)
-	var i Assignment
-	err := row.Scan(
-		&i.ID,
-		&i.ModuleID,
-		&i.CourseID,
-		&i.Title,
-		&i.Description,
-		&i.Content,
-		&i.Days,
-		&i.AssignmentTypeID,
-	)
+	var i GetLectureContentRow
+	err := row.Scan(&i.Title, &i.Content)
 	return i, err
 }
 

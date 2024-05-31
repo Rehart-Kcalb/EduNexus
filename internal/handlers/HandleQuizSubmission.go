@@ -1,11 +1,16 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
 
 	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/db"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 func handleQuizSubmission(w http.ResponseWriter, r *http.Request, assignment db.Assignment, DB *db.Queries) {
@@ -28,6 +33,13 @@ func handleQuizSubmission(w http.ResponseWriter, r *http.Request, assignment db.
 		http.Error(w, "Failed to parse user answers", http.StatusBadRequest)
 		return
 	}
+	var buff []byte = make([]byte, 1000)
+	n, err := r.Body.Read(buff)
+	if err != nil && errors.Is(err, io.EOF) {
+		_ = n
+		log.Println(err)
+		return
+	}
 
 	if len(quiz1.Answers) != len(user_answer.Answers) {
 		http.Error(w, "Mismatch in number of answers", http.StatusBadRequest)
@@ -42,5 +54,6 @@ func handleQuizSubmission(w http.ResponseWriter, r *http.Request, assignment db.
 	}
 
 	// TODO: Save grade to the database
-	fmt.Fprintf(w, "Grade: %d/%d", grade, len(quiz1.Answers))
+	//	fmt.Sprintf("%d/%d", grade, len(quiz1.Answers))
+	DB.CreateSubmission(context.Background(), db.CreateSubmissionParams{Info: pgtype.Text{String: fmt.Sprintf("%d/%d", grade, len(quiz1.Answers))}, AssignmentID: assignment.ID, Content: buff, UserID: r.Context().Value("id").(int64)})
 }
