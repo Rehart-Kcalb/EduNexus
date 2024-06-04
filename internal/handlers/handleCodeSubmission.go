@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/db"
+	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/types"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -88,6 +89,10 @@ func handleCodeSubmission(w http.ResponseWriter, r *http.Request, assignment db.
 		http.Error(w, "Failed to save submission to the database", http.StatusInternalServerError)
 		return
 	}
+
+	types.NewJsonResponse(struct {
+		Passed string `json:"test_passed"`
+	}{fmt.Sprintf("%d/%d", testCaseNum-failCaseNum, testCaseNum)}, http.StatusOK).Respond(w)
 }
 
 func runCodeInDocker(tempDir, userCodeFilename, testCodeFilename, language string) (string, string, error) {

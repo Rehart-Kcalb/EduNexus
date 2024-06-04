@@ -11,6 +11,20 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const addCategoryCourse = `-- name: AddCategoryCourse :exec
+Insert into course_categories(course_id,category_id) values ($1,$2)
+`
+
+type AddCategoryCourseParams struct {
+	CourseID   int64 `json:"course_id"`
+	CategoryID int64 `json:"category_id"`
+}
+
+func (q *Queries) AddCategoryCourse(ctx context.Context, arg AddCategoryCourseParams) error {
+	_, err := q.db.Exec(ctx, addCategoryCourse, arg.CourseID, arg.CategoryID)
+	return err
+}
+
 const allCategories = `-- name: AllCategories :many
 SELECT
   "name",
@@ -101,6 +115,45 @@ func (q *Queries) CreateAssignment(ctx context.Context, arg CreateAssignmentPara
 	return err
 }
 
+const createCourse = `-- name: CreateCourse :one
+Insert into courses(title,description,image,course_provider) values ($1,$2,$3,$4) returning id
+`
+
+type CreateCourseParams struct {
+	Title          string      `json:"title"`
+	Description    string      `json:"description"`
+	Image          pgtype.Text `json:"image"`
+	CourseProvider int64       `json:"course_provider"`
+}
+
+func (q *Queries) CreateCourse(ctx context.Context, arg CreateCourseParams) (int64, error) {
+	row := q.db.QueryRow(ctx, createCourse,
+		arg.Title,
+		arg.Description,
+		arg.Image,
+		arg.CourseProvider,
+	)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const createModule = `-- name: CreateModule :one
+Insert into modules(title,course_id) values ($1,$2) returning id
+`
+
+type CreateModuleParams struct {
+	Title    string `json:"title"`
+	CourseID int64  `json:"course_id"`
+}
+
+func (q *Queries) CreateModule(ctx context.Context, arg CreateModuleParams) (int64, error) {
+	row := q.db.QueryRow(ctx, createModule, arg.Title, arg.CourseID)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
 const createSubmission = `-- name: CreateSubmission :exec
 Insert into submissions(content,assignment_id,info,user_id) values ($1,$2,$3,$4)
 `
@@ -160,42 +213,7 @@ func (q *Queries) EnrollIntoCourse(ctx context.Context, arg EnrollIntoCoursePara
 	return err
 }
 
-const filterCourses = `-- name: FilterCourses :many
-select filter from filter($1,$2::bigint[]) limit $3 offset $4
-`
 
-type FilterCoursesParams struct {
-	TitleParam string  `json:"title_param"`
-	Column2    []int64 `json:"column_2"`
-	Limit      int32   `json:"limit"`
-	Offset     int32   `json:"offset"`
-}
-
-// select filter.title, image,organization_name, organization_logo from filter($1,$2::bigint[]) limit $3 offset $4;
-func (q *Queries) FilterCourses(ctx context.Context, arg FilterCoursesParams) ([]interface{}, error) {
-	rows, err := q.db.Query(ctx, filterCourses,
-		arg.TitleParam,
-		arg.Column2,
-		arg.Limit,
-		arg.Offset,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []interface{}
-	for rows.Next() {
-		var filter interface{}
-		if err := rows.Scan(&filter); err != nil {
-			return nil, err
-		}
-		items = append(items, filter)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
 
 const getAssignmentById = `-- name: GetAssignmentById :one
 select id, module_id, course_id, title, description, content, days, assignment_type_id from assignments where id = $1 limit 1
@@ -530,6 +548,50 @@ func (q *Queries) GetMyCourses(ctx context.Context, userID int64) ([]GetMyCourse
 	return items, nil
 }
 
+const getMyTeached = `-- name: GetMyTeached :many
+Select id, title, description, image, course_provider, user_id, course_id from courses 
+left join course_teachers on course.id = course_teachers.course_id
+where course_teachers.user_id = $1
+`
+
+type GetMyTeachedRow struct {
+	ID             int64       `json:"id"`
+	Title          string      `json:"title"`
+	Description    string      `json:"description"`
+	Image          pgtype.Text `json:"image"`
+	CourseProvider int64       `json:"course_provider"`
+	UserID         pgtype.Int8 `json:"user_id"`
+	CourseID       pgtype.Int8 `json:"course_id"`
+}
+
+func (q *Queries) GetMyTeached(ctx context.Context, userID int64) ([]GetMyTeachedRow, error) {
+	rows, err := q.db.Query(ctx, getMyTeached, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetMyTeachedRow
+	for rows.Next() {
+		var i GetMyTeachedRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.Image,
+			&i.CourseProvider,
+			&i.UserID,
+			&i.CourseID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPasswordByLogin = `-- name: GetPasswordByLogin :one
 SELECT
   PASSWORD
@@ -547,12 +609,13 @@ func (q *Queries) GetPasswordByLogin(ctx context.Context, login string) (string,
 }
 
 const newLecture = `-- name: NewLecture :exec
-insert into assignments (module_id,title,description,content,assignment_type_id)
-values ($1,$2,$3,$4,1)
+insert into assignments (module_id,course_id,title,description,content,assignment_type_id)
+values ($1,$2,$3,$4,$5,1)
 `
 
 type NewLectureParams struct {
 	ModuleID    int64  `json:"module_id"`
+	CourseID    int64  `json:"course_id"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Content     []byte `json:"content"`
@@ -561,6 +624,7 @@ type NewLectureParams struct {
 func (q *Queries) NewLecture(ctx context.Context, arg NewLectureParams) error {
 	_, err := q.db.Exec(ctx, newLecture,
 		arg.ModuleID,
+		arg.CourseID,
 		arg.Title,
 		arg.Description,
 		arg.Content,

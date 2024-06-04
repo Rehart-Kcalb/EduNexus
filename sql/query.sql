@@ -101,8 +101,8 @@ FROM
   courses c where c.id = $1;
 
 -- name: NewLecture :exec
-insert into assignments (module_id,title,description,content,assignment_type_id)
-values ($1,$2,$3,$4,1);
+insert into assignments (module_id,course_id,title,description,content,assignment_type_id)
+values ($1,$2,$3,$4,$5,1);
 
 -- name: CheckEnrollment :one
 select enrolled_on from enrollments where course_id = $1 and user_id = $2;
@@ -133,3 +133,17 @@ where a.assignment_type_id = 1;
 
 -- name: CreateAssignment :exec
 Insert into assignments(module_id,course_id,title,description,content,assignment_type_id) values($1,$2,$3,$4,$5,$6);
+
+-- name: GetMyTeached :many
+Select * from courses 
+left join course_teachers on course.id = course_teachers.course_id
+where course_teachers.user_id = $1;
+
+-- name: CreateCourse :one
+Insert into courses(title,description,image,course_provider) values ($1,$2,$3,$4) returning id;
+
+-- name: AddCategoryCourse :exec
+Insert into course_categories(course_id,category_id) values ($1,$2);
+
+-- name: CreateModule :one
+Insert into modules(title,course_id) values ($1,$2) returning id;

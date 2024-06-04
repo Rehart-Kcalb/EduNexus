@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/db"
+	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/types"
 )
 
 func HandleCreateAssignment(DB *db.Queries) http.HandlerFunc {
@@ -38,7 +39,11 @@ func HandleCreateAssignment(DB *db.Queries) http.HandlerFunc {
 		case 2:
 			if !CheckQuiz(Assign_Param.Content) {
 				// TODO: SOMETHING
+				types.NewJsonResponse(struct {
+					ErrorMessage string `json:"error_message"`
+				}{"Structure doesn't fit structure Quiz"}, http.StatusBadRequest).Respond(w)
 			}
+			return
 		case 3:
 			if !CheckCode(Assign_Param.Content) {
 				// TODO:SOMETHING

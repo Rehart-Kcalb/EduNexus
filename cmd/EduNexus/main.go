@@ -106,6 +106,12 @@ func LoadMuxWithHandlers(m *http.ServeMux, DB *db.Queries) {
 	m.HandleFunc("POST /api/teaching/{course_name}/{submission_id}", middleware.Auth(handlers.HandleGradeSubmission(DB)))
 	// * Creates a new assignment for a course (requires instructor privileges) (POST /api/learning/{course_name})
 	m.HandleFunc("POST /api/teachings/{course_name}/assignments", middleware.Auth(handlers.HandleCreateAssignment(DB)))
+	// Create course
+	m.HandleFunc("POST /api/teachings", middleware.Auth(handlers.HandleCreateCourse(DB)))
+	// * Create Module
+	m.HandleFunc("POST /api/teaching/{course_name}/modules", middleware.Auth(handlers.HandleCreateModule(DB)))
+	// * Create Lecture
+	m.HandleFunc("POST /api/teaching/{course_name}/lectures", middleware.Auth(handlers.HandleCreateLecture(DB)))
 }
 
 // ConnectToDB establishes a connection to an external PostgreSQL database using the provided connection string.
