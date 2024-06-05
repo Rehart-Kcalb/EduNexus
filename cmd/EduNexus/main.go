@@ -60,6 +60,9 @@ func LoadMuxWithHandlers(m *http.ServeMux, DB *db.Queries) {
 	m.HandleFunc("POST /api/login", handlers.HandleLogin(DB))
 	// * Handles user registration requests (POST /api/register)
 	m.HandleFunc("POST /api/register", handlers.HandleRegister(DB))
+	// * Show User profile
+	m.HandleFunc("GET /api/profile", middleware.Auth(handlers.HandleGetProfileInfo(DB)))
+	m.HandleFunc("POST /api/profile", middleware.Auth(handlers.HandleUpdateProfileInfo(DB)))
 
 	// **Course Management**
 	// * Gets all available categories (GET /api/categories/)
@@ -85,15 +88,17 @@ func LoadMuxWithHandlers(m *http.ServeMux, DB *db.Queries) {
 	// * Gets an assignment within a course (GET /api/learning/{course_name}/assignment/{assignment_id})
 	m.HandleFunc("GET /api/learning/{course_name}/assignments/{assignment_id}", middleware.Auth(handlers.HandleGetAssignment(DB)))
 	// * Gets the content of a submitted assignment (GET /api/learning/{course_name}/{assignment_id}/{submission_id})
-	m.HandleFunc("GET /api/learning/{course_name}/{assignment_id}/{submission_id}", middleware.Auth(handlers.HandleGetContentOfSubmission(DB)))
-	// * Checks (grades?) a submitted assignment (POST /api/learning/{course_name}/{assignment_id})
-	m.HandleFunc("POST /api/learning/{course_name}/{assignment_id}", middleware.Auth(handlers.HandleCheckSubmission(DB)))
+	m.HandleFunc("GET /api/learning/{course_name}/assignments/{assignment_id}/{submission_id}", middleware.Auth(handlers.HandleGetContentOfSubmission(DB)))
+	// * Checks a assignment (POST /api/learning/{course_name}/{assignment_id})
+	m.HandleFunc("POST /api/learning/{course_name}/assignments/{assignment_id}", middleware.Auth(handlers.HandleCheckSubmission(DB)))
 	// * Gets all courses a user is enrolled in (GET /api/learning/)
 	m.HandleFunc("GET /api/learning/", middleware.Auth(handlers.HandleGetMyCourses(DB)))
 	// * Gets lectures for a specific course (GET /api/learning/{course_name})
 	m.HandleFunc("GET /api/learning/{course_name}/lectures", middleware.Auth(handlers.HandleGetCourseLectures(DB)))
 	// * Gets the content for a specific lecture (GET /api/learning/{course_name}/lectures/{lecture_id})
 	m.HandleFunc("GET /api/learning/{course_name}/lectures/{lecture_id}", middleware.Auth(handlers.HandleGetLectureContent(DB)))
+	m.HandleFunc("GET /api/learning/{course_name}/modules/{module_name}", middleware.Auth(handlers.HandleGetModuleProgress(DB)))
+	m.HandleFunc("POST /api/learing/{course_name}/read/{lecture_id}", middleware.Auth(handlers.HandleReadLecture(DB)))
 
 	// **Teaching functionalities (requires authentication)**
 	// * Gets all courses a user is teaching (GET /api/teaching/)

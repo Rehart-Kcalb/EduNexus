@@ -88,7 +88,7 @@ select id from courses where title = $1 limit 1;
 select a.title, a.id  as assignment_id from courses c 
 left join modules m on m.course_id = c.id
 left join assignments a on a.module_id = m.id
-where  c.id = $1 and a.id is not null;
+where  c.id = $1 and a.id is not null and a.assignment_type_id = 1;
 
 -- name: GetLectureContent :one
 select title, content::text from assignments
@@ -147,3 +147,27 @@ Insert into course_categories(course_id,category_id) values ($1,$2);
 
 -- name: CreateModule :one
 Insert into modules(title,course_id) values ($1,$2) returning id;
+
+-- name: GetProgressByModule :many
+SELECT 
+    m.id AS module_id,
+    m.title AS module_name,
+    a.id AS assignment_id,
+	a.assignment_type_id,
+    COALESCE(pr.done IS NOT NULL, FALSE) AS read
+  FROM 
+    modules m
+  LEFT JOIN 
+    assignments a ON m.id = a.module_id
+  LEFT JOIN 
+    progress pr ON a.id = pr.assignment_id
+where m.id = $1 and pr.user_id = $2;
+
+-- name: GetProfileInfo :one
+select firstname,surname,description,profile from users where users.id = $1;
+
+-- name: UpdateProfileInfo :exec
+Update users set firstname = $1, surname = $2, description = $3, profile = $4 where users.id = $5;
+
+-- name: MarkAssignmentDone :exec
+insert into progress(assignment_id,user_id,done,pass) values ($1,$2,now(),true);

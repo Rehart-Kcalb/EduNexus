@@ -12,6 +12,7 @@ CREATE TABLE
     "surname" VARCHAR(50),
     "firstname" VARCHAR(100),
     "profile" varchar(500),
+    "description" varchar(200),
     "user_role_id" INT NOT NULL,
     FOREIGN KEY ("user_role_id") REFERENCES "user_roles" ("id")
   );
@@ -88,15 +89,15 @@ CREATE TABLE
     FOREIGN KEY ("assignment_type_id") REFERENCES "assignments_types" ("id")
   );
 
-  CREATE TABLE
-  "deadlines" (
-    "id" BIGSERIAL PRIMARY KEY,
-    "assignment_id" BIGINT NOT NULL,
-    "deadline" TIMESTAMP,
-    "user_id" BIGINT NOT NULL,
-    FOREIGN KEY ("assignment_id") REFERENCES "assignments" ("id"),
-    FOREIGN KEY ("user_id") REFERENCES "users" ("id")
-  );
+  -- CREATE TABLE
+  -- "deadlines" (
+  --   "id" BIGSERIAL PRIMARY KEY,
+  --   "assignment_id" BIGINT NOT NULL,
+  --   "deadline" TIMESTAMP,
+  --   "user_id" BIGINT NOT NULL,
+  --   FOREIGN KEY ("assignment_id") REFERENCES "assignments" ("id"),
+  --   FOREIGN KEY ("user_id") REFERENCES "users" ("id")
+  -- );
 
   CREATE TABLE
   "submissions" (
@@ -108,6 +109,14 @@ CREATE TABLE
     "user_id" BIGINT NOT NULL,
     FOREIGN KEY ("user_id") REFERENCES "users" ("id"),
     FOREIGN KEY ("assignment_id") REFERENCES "assignments" ("id")
+  );
+
+  CREATE TABLE 
+  "progress"(
+    assignment_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    done DATE NOT NULL,
+    pass bool NOT NULL
   );
 
 
@@ -139,3 +148,4 @@ CREATE TABLE
     "rate" bool NOT NULL,
     FOREIGN KEY ("comment_id") REFERENCES "comments" ("id")
   );
+

@@ -65,5 +65,6 @@ VALUES
             "code_test": "package main\n\nimport \"testing\"\n\n// sumator adds two integers and returns the result\n// TestSumator tests the sumator function\nfunc TestSumator(t *testing.T) {\n    tests := []struct {\n        i1, i2, expected int\n    }{\n        {1, 2, 3},\n        {-1, -1, -2},\n        {0, 0, 0},\n        {123, 456, 579},\n    }\n\n    for _, test := range tests {\n        result := sumator(test.i1, test.i2)\n        if result != test.expected {\n            t.Errorf(\"sumator(%d, %d) = %d; want %d\", test.i1, test.i2, result, test.expected)\n        }\n    }\n}",
             "quiz_question": ""
         }
-    }'
+    }',
+    3
 );

@@ -26,19 +26,19 @@ services:
     volumes:
       - pgadmin-data:/var/lib/pgadmin
 
-  #edunexus:
-    #container_name: "edunexus_container"
-    #build:
-      #context: "."
-      #dockerfile: Dockerfile
-    #environment:
-      #DB_NAME: "${DB_NAME}"
-      #DB_USERNAME: "${DB_USERNAME}"
-      #DB_PASSWORD: "${DB_PASSWORD}"
-      #DB_PORT: "${DB_PORT}"
-      #DB_HOST: "${DB_HOST}"
-    #ports:
-      #- "8080:8080"
+  # edunexus:
+  #   container_name: "edunexus_container"
+  #   build:
+  #     context: "."
+  #     dockerfile: Dockerfile
+  #   environment:
+  #     DB_NAME: "${DB_NAME}"
+  #     DB_USERNAME: "${DB_USERNAME}"
+  #     DB_PASSWORD: "${DB_PASSWORD}"
+  #     DB_PORT: "${DB_PORT}"
+  #     DB_HOST: "${DB_HOST}"
+  #   ports:
+  #     - "8080:8080"
 
 
 volumes:

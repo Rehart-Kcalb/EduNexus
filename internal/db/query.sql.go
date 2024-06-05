@@ -348,7 +348,7 @@ const getCourseLectures = `-- name: GetCourseLectures :many
 select a.title, a.id  as assignment_id from courses c 
 left join modules m on m.course_id = c.id
 left join assignments a on a.module_id = m.id
-where  c.id = $1 and a.id is not null
+where  c.id = $1 and a.id is not null and a.assignment_type_id = 1
 `
 
 type GetCourseLecturesRow struct {
@@ -608,6 +608,98 @@ func (q *Queries) GetPasswordByLogin(ctx context.Context, login string) (string,
 	return password, err
 }
 
+const getProfileInfo = `-- name: GetProfileInfo :one
+select firstname,surname,description,profile from users where users.id = $1
+`
+
+type GetProfileInfoRow struct {
+	Firstname   pgtype.Text `json:"firstname"`
+	Surname     pgtype.Text `json:"surname"`
+	Description pgtype.Text `json:"description"`
+	Profile     pgtype.Text `json:"profile"`
+}
+
+func (q *Queries) GetProfileInfo(ctx context.Context, id int64) (GetProfileInfoRow, error) {
+	row := q.db.QueryRow(ctx, getProfileInfo, id)
+	var i GetProfileInfoRow
+	err := row.Scan(
+		&i.Firstname,
+		&i.Surname,
+		&i.Description,
+		&i.Profile,
+	)
+	return i, err
+}
+
+const getProgressByModule = `-- name: GetProgressByModule :many
+SELECT 
+    m.id AS module_id,
+    m.title AS module_name,
+    a.id AS assignment_id,
+	a.assignment_type_id,
+    COALESCE(pr.done IS NOT NULL, FALSE) AS read
+  FROM 
+    modules m
+  LEFT JOIN 
+    assignments a ON m.id = a.module_id
+  LEFT JOIN 
+    progress pr ON a.id = pr.assignment_id
+where m.id = $1 and pr.user_id = $2
+`
+
+type GetProgressByModuleParams struct {
+	ID     int64 `json:"id"`
+	UserID int64 `json:"user_id"`
+}
+
+type GetProgressByModuleRow struct {
+	ModuleID         int64       `json:"module_id"`
+	ModuleName       string      `json:"module_name"`
+	AssignmentID     pgtype.Int8 `json:"assignment_id"`
+	AssignmentTypeID pgtype.Int8 `json:"assignment_type_id"`
+	Read             interface{} `json:"read"`
+}
+
+func (q *Queries) GetProgressByModule(ctx context.Context, arg GetProgressByModuleParams) ([]GetProgressByModuleRow, error) {
+	rows, err := q.db.Query(ctx, getProgressByModule, arg.ID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetProgressByModuleRow
+	for rows.Next() {
+		var i GetProgressByModuleRow
+		if err := rows.Scan(
+			&i.ModuleID,
+			&i.ModuleName,
+			&i.AssignmentID,
+			&i.AssignmentTypeID,
+			&i.Read,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const markAssignmentDone = `-- name: MarkAssignmentDone :exec
+insert into progress(assignment_id,user_id,done,pass) values ($1,$2,now(),true)
+`
+
+type MarkAssignmentDoneParams struct {
+	AssignmentID int64 `json:"assignment_id"`
+	UserID       int64 `json:"user_id"`
+}
+
+func (q *Queries) MarkAssignmentDone(ctx context.Context, arg MarkAssignmentDoneParams) error {
+	_, err := q.db.Exec(ctx, markAssignmentDone, arg.AssignmentID, arg.UserID)
+	return err
+}
+
 const newLecture = `-- name: NewLecture :exec
 insert into assignments (module_id,course_id,title,description,content,assignment_type_id)
 values ($1,$2,$3,$4,$5,1)
@@ -628,6 +720,29 @@ func (q *Queries) NewLecture(ctx context.Context, arg NewLectureParams) error {
 		arg.Title,
 		arg.Description,
 		arg.Content,
+	)
+	return err
+}
+
+const updateProfileInfo = `-- name: UpdateProfileInfo :exec
+Update users set firstname = $1, surname = $2, description = $3, profile = $4 where users.id = $5
+`
+
+type UpdateProfileInfoParams struct {
+	Firstname   pgtype.Text `json:"firstname"`
+	Surname     pgtype.Text `json:"surname"`
+	Description pgtype.Text `json:"description"`
+	Profile     pgtype.Text `json:"profile"`
+	ID          int64       `json:"id"`
+}
+
+func (q *Queries) UpdateProfileInfo(ctx context.Context, arg UpdateProfileInfoParams) error {
+	_, err := q.db.Exec(ctx, updateProfileInfo,
+		arg.Firstname,
+		arg.Surname,
+		arg.Description,
+		arg.Profile,
+		arg.ID,
 	)
 	return err
 }

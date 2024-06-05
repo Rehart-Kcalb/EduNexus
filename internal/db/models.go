@@ -55,13 +55,6 @@ type CourseTeacher struct {
 	CourseID int64 `json:"course_id"`
 }
 
-type Deadline struct {
-	ID           int64            `json:"id"`
-	AssignmentID int64            `json:"assignment_id"`
-	Deadline     pgtype.Timestamp `json:"deadline"`
-	UserID       int64            `json:"user_id"`
-}
-
 type Enrollment struct {
 	ID         int64       `json:"id"`
 	EnrolledOn pgtype.Date `json:"enrolled_on"`
@@ -73,6 +66,13 @@ type Module struct {
 	ID       int64  `json:"id"`
 	Title    string `json:"title"`
 	CourseID int64  `json:"course_id"`
+}
+
+type Progress struct {
+	AssignmentID int64       `json:"assignment_id"`
+	UserID       int64       `json:"user_id"`
+	Done         pgtype.Date `json:"done"`
+	Pass         bool        `json:"pass"`
 }
 
 type Rating struct {
@@ -99,13 +99,14 @@ type Thread struct {
 }
 
 type User struct {
-	ID         int64       `json:"id"`
-	Login      string      `json:"login"`
-	Password   string      `json:"password"`
-	Surname    pgtype.Text `json:"surname"`
-	Firstname  pgtype.Text `json:"firstname"`
-	Profile    pgtype.Text `json:"profile"`
-	UserRoleID int32       `json:"user_role_id"`
+	ID          int64       `json:"id"`
+	Login       string      `json:"login"`
+	Password    string      `json:"password"`
+	Surname     pgtype.Text `json:"surname"`
+	Firstname   pgtype.Text `json:"firstname"`
+	Profile     pgtype.Text `json:"profile"`
+	Description pgtype.Text `json:"description"`
+	UserRoleID  int32       `json:"user_role_id"`
 }
 
 type UserRole struct {
