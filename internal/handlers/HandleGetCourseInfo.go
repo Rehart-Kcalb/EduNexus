@@ -21,10 +21,10 @@ func HandleGetCourseInfo(DB *db.Queries) http.HandlerFunc {
 		teachers, err := DB.GetCourseTeachers(context.Background(), course_id)
 		if err != nil {
 			log.Println(err)
+			teachers = []db.GetCourseTeachersRow{}
 			return
 			// TODO: Do Actually something with errors
 		}
-		_ = teachers
 
 		enrolled, err := DB.GetCourseEnrolledAmount(context.Background(), course_id)
 		if err != nil {

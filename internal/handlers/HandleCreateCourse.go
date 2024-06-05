@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/db"
+	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/types"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -30,6 +31,12 @@ func HandleCreateCourse(DB *db.Queries) http.HandlerFunc {
 			} else {
 				log.Println("Error while decoding" + err.Error())
 			}
+		}
+		if len(post_data.Title) < 5 {
+			types.NewJsonResponse(struct {
+				ErrorMessage string `json:"error_message"`
+			}{"Title so long"}, http.StatusBadRequest).Respond(w)
+			return
 		}
 		course_id, err := DB.CreateCourse(context.Background(), db.CreateCourseParams{Title: post_data.Title, Description: post_data.Description, Image: pgtype.Text{String: post_data.Image}, CourseProvider: user_id})
 		if err != nil {

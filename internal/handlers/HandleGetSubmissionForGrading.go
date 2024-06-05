@@ -8,6 +8,6 @@ import (
 
 func HandleGetSubmissionForGrading(DB *db.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
+		// TODO:
 	}
 }

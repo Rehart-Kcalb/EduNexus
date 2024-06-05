@@ -14,6 +14,9 @@ func HandleGetMyTeached(DB *db.Queries) http.HandlerFunc {
 		_ = teacher_id
 		courses, err := DB.GetMyTeached(context.Background(), teacher_id)
 		if err != nil {
+			types.NewJsonResponse(struct {
+				Courses any `json:"courses"`
+			}{[]any{}}, http.StatusOK).Respond(w)
 			return
 		}
 		types.NewJsonResponse(struct {

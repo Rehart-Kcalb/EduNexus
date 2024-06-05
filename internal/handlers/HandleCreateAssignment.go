@@ -47,22 +47,37 @@ func HandleCreateAssignment(DB *db.Queries) http.HandlerFunc {
 		case 3:
 			if !CheckCode(Assign_Param.Content) {
 				// TODO:SOMETHING
+				types.NewJsonResponse(struct {
+					ErrorMessage string `json:"error_message"`
+				}{"Structure doesn't fit structure CODE"}, http.StatusBadRequest).Respond(w)
 			}
 		case 4:
 			if !CheckMatching(Assign_Param.Content) {
 				// TODO: SOMETHING
+				types.NewJsonResponse(struct {
+					ErrorMessage string `json:"error_message"`
+				}{"Structure doesn't fit structure Matching"}, http.StatusBadRequest).Respond(w)
 			}
 		case 5:
 			if !CheckFillIn(Assign_Param.Content) {
 				// TODO: Something
+				types.NewJsonResponse(struct {
+					ErrorMessage string `json:"error_message"`
+				}{"Structure doesn't fit structure Fill In"}, http.StatusBadRequest).Respond(w)
 			}
 		case 6:
 			if !CheckFree(Assign_Param.Content) {
 				// TODO: SOMETHING
+				types.NewJsonResponse(struct {
+					ErrorMessage string `json:"error_message"`
+				}{"Structure doesn't fit structure Free"}, http.StatusBadRequest).Respond(w)
 			}
 		case 7:
 			if !CheckNumber(Assign_Param.Content) {
 				// TODO: SOMETHING
+				types.NewJsonResponse(struct {
+					ErrorMessage string `json:"error_message"`
+				}{"Structure doesn't fit structure Number"}, http.StatusBadRequest).Respond(w)
 			}
 		}
 		err = DB.CreateAssignment(context.Background(), db.CreateAssignmentParams{CourseID: Assign_Param.CourseID, ModuleID: Assign_Param.ModuleId, Content: []byte(Assign_Param.Content), Description: Assign_Param.Description, Title: Assign_Param.Title, AssignmentTypeID: Assign_Param.AssignmentTypeId})

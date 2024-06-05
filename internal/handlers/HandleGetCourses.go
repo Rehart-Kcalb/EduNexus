@@ -21,12 +21,21 @@ func HandleGetCourses(DB *db.Queries) http.HandlerFunc {
 		PagParams := utils.GetPaginationParams(r.URL.Query())
 		courses, err := DB.FilterCourses(context.Background(), db.FilterCoursesParams{Limit: int32(PagParams.Limit), Offset: int32(PagParams.Offset)})
 		if err != nil {
+			types.NewJsonResponse(struct {
+				Courses any   `json:"courses"`
+				Count   int64 `json:"pages"`
+			}{[]any{}, 1}, http.StatusOK).Respond(w)
+			return
 			types.NewJsonResponse("Problem with DB", http.StatusInternalServerError).Respond(w)
 			return
 		}
 		count, err := DB.CountCourses(context.Background(), db.CountCoursesParams{})
 		if err != nil {
 			log.Println(err)
+			types.NewJsonResponse(struct {
+				Courses any   `json:"courses"`
+				Count   int64 `json:"pages"`
+			}{[]any{}, 1}, http.StatusOK).Respond(w)
 			return
 		}
 		log.Println(count)

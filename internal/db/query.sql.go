@@ -550,7 +550,7 @@ func (q *Queries) GetMyCourses(ctx context.Context, userID int64) ([]GetMyCourse
 
 const getMyTeached = `-- name: GetMyTeached :many
 Select id, title, description, image, course_provider, user_id, course_id from courses 
-left join course_teachers on course.id = course_teachers.course_id
+left join course_teachers on courses.id = course_teachers.course_id
 where course_teachers.user_id = $1
 `
 

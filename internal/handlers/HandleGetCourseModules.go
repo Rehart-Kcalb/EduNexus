@@ -15,6 +15,10 @@ func HandleGetCourseModules(DB *db.Queries) http.HandlerFunc {
 		course_modules, err := DB.GetCourseModules(context.Background(), course_name)
 		if err != nil {
 			log.Println("Problem with database:", err)
+			types.NewJsonResponse(struct {
+				Course_modules any `json:"course_modules"`
+			}{[]any{}}, http.StatusOK).Respond(w)
+
 			return
 			// TODO: Handle error properly
 		}

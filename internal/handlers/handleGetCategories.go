@@ -13,9 +13,13 @@ func HandleGetAllCategories(DB *db.Queries) http.HandlerFunc {
 		categories, err := DB.AllCategories(context.Background())
 		if err != nil {
 			types.NewJsonResponse("Internal error with database", http.StatusInternalServerError).Respond(w)
+			return
 		}
 		if categories == nil {
-			w.Write([]byte(err.Error()))
+			types.NewJsonResponse(struct {
+				Categories any `json:"categories"`
+			}{[]any{}}, http.StatusOK).Respond(w)
+
 			return
 		}
 		types.NewJsonResponse(struct {

@@ -136,7 +136,7 @@ Insert into assignments(module_id,course_id,title,description,content,assignment
 
 -- name: GetMyTeached :many
 Select * from courses 
-left join course_teachers on course.id = course_teachers.course_id
+left join course_teachers on courses.id = course_teachers.course_id
 where course_teachers.user_id = $1;
 
 -- name: CreateCourse :one
@@ -171,3 +171,9 @@ Update users set firstname = $1, surname = $2, description = $3, profile = $4 wh
 
 -- name: MarkAssignmentDone :exec
 insert into progress(assignment_id,user_id,done,pass) values ($1,$2,now(),true);
+
+-- name: GetAllSubmissions :many
+select s.* from submissions s 
+left join assignments on s.assignment_id = assignments.id
+left join courses on courses.id = assignments.course_id
+where assignments.course_id = $1;

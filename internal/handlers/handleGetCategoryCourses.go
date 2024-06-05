@@ -21,7 +21,9 @@ func HandleGetCategoryCourses(DB *db.Queries) http.HandlerFunc {
 		}
 		course_id, err := DB.GetCategoryId(context.Background(), category_name)
 		if err != nil {
-			// TODO: Proper error handling
+			types.NewJsonResponse(struct {
+				ErrorMessage string `json:"error_message"`
+			}{"Нет такой категории"}, http.StatusOK).Respond(w)
 			return
 		}
 		log.Println(course_id)
@@ -33,7 +35,10 @@ func HandleGetCategoryCourses(DB *db.Queries) http.HandlerFunc {
 		log.Println(courses)
 		count, err := DB.CountCourses(context.Background(), db.CountCoursesParams{Column2: []int64{course_id}})
 		if err != nil {
-			// TODO: error handler
+			types.NewJsonResponse(struct {
+				Courses any   `json:"courses"`
+				Count   int64 `json:"pages"`
+			}{[]any{}, 1}, http.StatusOK).Respond(w)
 			return
 		}
 		pages := int64(math.Ceil(float64(count) / float64(PagParams.Limit)))
