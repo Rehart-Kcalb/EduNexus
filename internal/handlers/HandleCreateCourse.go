@@ -35,7 +35,7 @@ func HandleCreateCourse(DB *db.Queries) http.HandlerFunc {
 		if len(post_data.Title) < 5 {
 			types.NewJsonResponse(struct {
 				ErrorMessage string `json:"error_message"`
-			}{"Title so long"}, http.StatusBadRequest).Respond(w)
+			}{"Title so short"}, http.StatusBadRequest).Respond(w)
 			return
 		}
 		course_id, err := DB.CreateCourse(context.Background(), db.CreateCourseParams{Title: post_data.Title, Description: post_data.Description, Image: pgtype.Text{String: post_data.Image}, CourseProvider: user_id})

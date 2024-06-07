@@ -121,7 +121,7 @@ select count(title) from filter($1,$2::bigint[]);
 select * from assignments where course_id = $1 and assignment_type_id <> 1;
 
 -- name: GetAssignmentById :one
-select * from assignments where id = $1 limit 1;
+select id,title,content::text,description,assignment_type_id from assignments where id = $1 limit 1;
 
 -- name: CreateSubmission :exec
 Insert into submissions(content,assignment_id,info,user_id) values ($1,$2,$3,$4);
@@ -164,10 +164,10 @@ SELECT
 where m.id = $1 and pr.user_id = $2;
 
 -- name: GetProfileInfo :one
-select firstname,surname,description,profile from users where users.id = $1;
+select firstname,description,profile from users where users.id = $1;
 
 -- name: UpdateProfileInfo :exec
-Update users set firstname = $1, surname = $2, description = $3, profile = $4 where users.id = $5;
+Update users set firstname = $1, description = $2, profile = $3 where users.id = $4;
 
 -- name: MarkAssignmentDone :exec
 insert into progress(assignment_id,user_id,done,pass) values ($1,$2,now(),true);

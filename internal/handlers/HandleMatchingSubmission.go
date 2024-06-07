@@ -11,7 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func handleMatchingSubmission(w http.ResponseWriter, r *http.Request, assignment db.Assignment, DB *db.Queries) {
+func handleMatchingSubmission(w http.ResponseWriter, r *http.Request, assignment db.GetAssignmentByIdRow, DB *db.Queries) {
 	type MatchingQuiz struct {
 		MatchingPairs []struct {
 			Left  string `json:"left"`
@@ -25,7 +25,7 @@ func handleMatchingSubmission(w http.ResponseWriter, r *http.Request, assignment
 		} `json:"matching_pairs"`
 	}
 	var matchingQuiz MatchingQuiz
-	if err := json.Unmarshal(assignment.Content, &matchingQuiz); err != nil {
+	if err := json.Unmarshal([]byte(assignment.Content), &matchingQuiz); err != nil {
 		types.NewJsonResponse(struct {
 			Message string `json:"error message"`
 		}{"Failed to parse assignment content"}, http.StatusInternalServerError).Respond(w)

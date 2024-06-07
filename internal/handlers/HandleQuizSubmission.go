@@ -13,7 +13,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func handleQuizSubmission(w http.ResponseWriter, r *http.Request, assignment db.Assignment, DB *db.Queries) {
+func handleQuizSubmission(w http.ResponseWriter, r *http.Request, assignment db.GetAssignmentByIdRow, DB *db.Queries) {
 	type quiz struct {
 		Questions []string   `json:"questions"`
 		Variant   [][]string `json:"variant"`
@@ -23,7 +23,7 @@ func handleQuizSubmission(w http.ResponseWriter, r *http.Request, assignment db.
 		Answers []string `json:"answers"`
 	}
 	var quiz1 quiz
-	if err := json.Unmarshal(assignment.Content, &quiz1); err != nil {
+	if err := json.Unmarshal([]byte(assignment.Content), &quiz1); err != nil {
 		http.Error(w, "Failed to parse assignment content", http.StatusInternalServerError)
 		return
 	}

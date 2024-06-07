@@ -16,7 +16,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func handleCodeSubmission(w http.ResponseWriter, r *http.Request, assignment db.Assignment, DB *db.Queries) {
+func handleCodeSubmission(w http.ResponseWriter, r *http.Request, assignment db.GetAssignmentByIdRow, DB *db.Queries) {
 	type codeQuiz struct {
 		Language     string `json:"language"`
 		CodeTest     string `json:"code_test"`
@@ -28,7 +28,8 @@ func handleCodeSubmission(w http.ResponseWriter, r *http.Request, assignment db.
 	}
 
 	var codeQuiz1 codeQuiz
-	if err := json.Unmarshal(assignment.Content, &codeQuiz1); err != nil {
+	/* log.Println(assignment.Content) */
+	if err := json.Unmarshal([]byte(assignment.Content), &codeQuiz1); err != nil {
 		http.Error(w, "Failed to parse assignment content", http.StatusInternalServerError)
 		return
 	}
@@ -38,6 +39,7 @@ func handleCodeSubmission(w http.ResponseWriter, r *http.Request, assignment db.
 		http.Error(w, "Failed to parse code submission", http.StatusBadRequest)
 		return
 	}
+	log.Println(codeSub1)
 
 	// Create a temporary directory
 	tempDir, err := os.MkdirTemp("", "code_submission")
@@ -71,22 +73,34 @@ func handleCodeSubmission(w http.ResponseWriter, r *http.Request, assignment db.
 	// Run the tests in Docker
 	expectedOutput, _, err := runCodeInDocker(tempDir, userCodeFilename, testCodeFilename, codeQuiz1.Language)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to execute code: %v", err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Failed to execute code docker: %v", err), http.StatusInternalServerError)
+		log.Println(expectedOutput)
+		log.Println(err)
+		log.Println(codeQuiz1)
 		return
 	}
 
+	log.Println(expectedOutput)
 	testCaseNum := strings.Count(expectedOutput, "RUN")
 	failCaseNum := strings.Count(expectedOutput, "FAIL")
 
+	content, err := json.Marshal(struct {
+		Content string `json:"content"`
+	}{codeSub1.Code})
+	if err != nil {
+		log.Println(err)
+	}
 	// Store the submission in the database
 	err = DB.CreateSubmission(r.Context(), db.CreateSubmissionParams{
-		Content:      []byte(`{"content":"` + codeSub1.Code + `"}`),
+		Content:      content,
 		AssignmentID: assignment.ID,
 		Info:         pgtype.Text{String: fmt.Sprintf("%d/%d", testCaseNum-failCaseNum, testCaseNum), Valid: true},
 		UserID:       r.Context().Value("id").(int64),
 	})
 	if err != nil {
 		http.Error(w, "Failed to save submission to the database", http.StatusInternalServerError)
+		log.Println(`{"content":"` + codeSub1.Code + `"}`)
+		log.Println(err)
 		return
 	}
 
@@ -100,7 +114,7 @@ func runCodeInDocker(tempDir, userCodeFilename, testCodeFilename, language strin
 
 	_ = userCodeFilename
 	_ = testCodeFilename
-
+	language = strings.ToLower(language)
 	switch language {
 	case "go":
 		goModPath := tempDir + "/go.mod"
@@ -120,6 +134,7 @@ func runCodeInDocker(tempDir, userCodeFilename, testCodeFilename, language strin
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
+		log.Println(err)
 		return "", "", fmt.Errorf("failed to execute test code: %v", err)
 	}
 

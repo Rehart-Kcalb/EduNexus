@@ -6,6 +6,6 @@ import (
 	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/db"
 )
 
-func handleSQLSubmission(w http.ResponseWriter, r *http.Request, assignment db.Assignment, DB *db.Queries) {
+func handleSQLSubmission(w http.ResponseWriter, r *http.Request, assignment db.GetAssignmentByIdRow, DB *db.Queries) {
 	// TODO:
 }

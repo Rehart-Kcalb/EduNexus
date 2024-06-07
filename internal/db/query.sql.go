@@ -215,21 +215,60 @@ func (q *Queries) EnrollIntoCourse(ctx context.Context, arg EnrollIntoCoursePara
 
 
 
-const getAssignmentById = `-- name: GetAssignmentById :one
-select id, module_id, course_id, title, description, content, days, assignment_type_id from assignments where id = $1 limit 1
+const getAllSubmissions = `-- name: GetAllSubmissions :many
+select s.id, s.assignment_id, s.delay, s.content, s.info, s.user_id from submissions s 
+left join assignments on s.assignment_id = assignments.id
+left join courses on courses.id = assignments.course_id
+where assignments.course_id = $1
 `
 
-func (q *Queries) GetAssignmentById(ctx context.Context, id int64) (Assignment, error) {
+func (q *Queries) GetAllSubmissions(ctx context.Context, courseID int64) ([]Submission, error) {
+	rows, err := q.db.Query(ctx, getAllSubmissions, courseID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Submission
+	for rows.Next() {
+		var i Submission
+		if err := rows.Scan(
+			&i.ID,
+			&i.AssignmentID,
+			&i.Delay,
+			&i.Content,
+			&i.Info,
+			&i.UserID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAssignmentById = `-- name: GetAssignmentById :one
+select id,title,content::text,description,assignment_type_id from assignments where id = $1 limit 1
+`
+
+type GetAssignmentByIdRow struct {
+	ID               int64  `json:"id"`
+	Title            string `json:"title"`
+	Content          string `json:"content"`
+	Description      string `json:"description"`
+	AssignmentTypeID int64  `json:"assignment_type_id"`
+}
+
+func (q *Queries) GetAssignmentById(ctx context.Context, id int64) (GetAssignmentByIdRow, error) {
 	row := q.db.QueryRow(ctx, getAssignmentById, id)
-	var i Assignment
+	var i GetAssignmentByIdRow
 	err := row.Scan(
 		&i.ID,
-		&i.ModuleID,
-		&i.CourseID,
 		&i.Title,
-		&i.Description,
 		&i.Content,
-		&i.Days,
+		&i.Description,
 		&i.AssignmentTypeID,
 	)
 	return i, err
@@ -609,12 +648,11 @@ func (q *Queries) GetPasswordByLogin(ctx context.Context, login string) (string,
 }
 
 const getProfileInfo = `-- name: GetProfileInfo :one
-select firstname,surname,description,profile from users where users.id = $1
+select firstname,description,profile from users where users.id = $1
 `
 
 type GetProfileInfoRow struct {
 	Firstname   pgtype.Text `json:"firstname"`
-	Surname     pgtype.Text `json:"surname"`
 	Description pgtype.Text `json:"description"`
 	Profile     pgtype.Text `json:"profile"`
 }
@@ -622,12 +660,7 @@ type GetProfileInfoRow struct {
 func (q *Queries) GetProfileInfo(ctx context.Context, id int64) (GetProfileInfoRow, error) {
 	row := q.db.QueryRow(ctx, getProfileInfo, id)
 	var i GetProfileInfoRow
-	err := row.Scan(
-		&i.Firstname,
-		&i.Surname,
-		&i.Description,
-		&i.Profile,
-	)
+	err := row.Scan(&i.Firstname, &i.Description, &i.Profile)
 	return i, err
 }
 
@@ -725,12 +758,11 @@ func (q *Queries) NewLecture(ctx context.Context, arg NewLectureParams) error {
 }
 
 const updateProfileInfo = `-- name: UpdateProfileInfo :exec
-Update users set firstname = $1, surname = $2, description = $3, profile = $4 where users.id = $5
+Update users set firstname = $1, description = $2, profile = $3 where users.id = $4
 `
 
 type UpdateProfileInfoParams struct {
 	Firstname   pgtype.Text `json:"firstname"`
-	Surname     pgtype.Text `json:"surname"`
 	Description pgtype.Text `json:"description"`
 	Profile     pgtype.Text `json:"profile"`
 	ID          int64       `json:"id"`
@@ -739,7 +771,6 @@ type UpdateProfileInfoParams struct {
 func (q *Queries) UpdateProfileInfo(ctx context.Context, arg UpdateProfileInfoParams) error {
 	_, err := q.db.Exec(ctx, updateProfileInfo,
 		arg.Firstname,
-		arg.Surname,
 		arg.Description,
 		arg.Profile,
 		arg.ID,

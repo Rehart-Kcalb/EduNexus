@@ -13,7 +13,6 @@ import (
 func HandleUpdateProfileInfo(DB *db.Queries) http.HandlerFunc {
 	type Profile struct {
 		FirstName   string `json:"firstname"`
-		SurName     string `json:"surname"`
 		Description string `json:"description"`
 		Profile     string `json:"profile"`
 	}
@@ -23,7 +22,7 @@ func HandleUpdateProfileInfo(DB *db.Queries) http.HandlerFunc {
 		if err != nil {
 			return
 		}
-		err = DB.UpdateProfileInfo(context.Background(), db.UpdateProfileInfoParams{Firstname: pgtype.Text{String: post_data.FirstName}, Surname: pgtype.Text{String: post_data.SurName}, Description: pgtype.Text{String: post_data.Description}, Profile: pgtype.Text{String: post_data.Profile}})
+		err = DB.UpdateProfileInfo(context.Background(), db.UpdateProfileInfoParams{Firstname: pgtype.Text{String: post_data.FirstName}, Description: pgtype.Text{String: post_data.Description}, Profile: pgtype.Text{String: post_data.Profile}})
 		if err != nil {
 			return
 		}

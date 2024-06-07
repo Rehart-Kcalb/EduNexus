@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -31,7 +32,7 @@ func HandleCheckSubmission(DB *db.Queries) http.HandlerFunc {
 			}{"Failed to get assignment"}, http.StatusBadRequest).Respond(w)
 			return
 		}
-		_ = assignment
+		log.Println(assignment)
 		switch assignment.AssignmentTypeID {
 		case 2:
 			// Quiz
