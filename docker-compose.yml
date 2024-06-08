@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   postgres:
     image: postgres:latest
@@ -9,11 +11,11 @@ services:
       POSTGRES_USER: "${DB_USERNAME}"
       POSTGRES_PASSWORD: "${DB_PASSWORD}"
       POSTGRES_PORT: "${DB_PORT}"
-      POSTGRES_INITDB_SCRIPT: "./sql/schema.sql"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports: 
       - "${DB_PORT}:5432"
+
   pgadmin:
     container_name: pgadmin_container
     image: dpage/pgadmin4:latest
@@ -25,21 +27,29 @@ services:
       - "5050:80"
     volumes:
       - pgadmin-data:/var/lib/pgadmin
+    depends_on: 
+      postgres:
+        condition: service_started
 
-  # edunexus:
-  #   container_name: "edunexus_container"
-  #   build:
-  #     context: "."
-  #     dockerfile: Dockerfile
-  #   environment:
-  #     DB_NAME: "${DB_NAME}"
-  #     DB_USERNAME: "${DB_USERNAME}"
-  #     DB_PASSWORD: "${DB_PASSWORD}"
-  #     DB_PORT: "${DB_PORT}"
-  #     DB_HOST: "${DB_HOST}"
-  #   ports:
-  #     - "8080:8080"
-
+  edunexus:
+    container_name: "edunexus_container"
+    build:
+      context: "."
+      dockerfile: Dockerfile
+    environment:
+      DB_NAME: "${DB_NAME}"
+      DB_USERNAME: "${DB_USERNAME}"
+      DB_PASSWORD: "${DB_PASSWORD}"
+      DB_PORT: "${DB_PORT}"
+      DB_HOST: "postgres"
+      #DOCKER_HOST: tcp://docker:2375/
+    ports:
+      - "80:8080"
+    depends_on: 
+      postgres:
+        condition: service_started
+    restart: always
+    privileged: true
 
 volumes:
   pgadmin-data:

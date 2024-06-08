@@ -74,7 +74,7 @@ func handleCodeSubmission(w http.ResponseWriter, r *http.Request, assignment db.
 	expectedOutput, _, err := runCodeInDocker(tempDir, userCodeFilename, testCodeFilename, codeQuiz1.Language)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to execute code docker: %v", err), http.StatusInternalServerError)
-		log.Println(expectedOutput)
+		log.Println("expected output:", expectedOutput)
 		log.Println(err)
 		log.Println(codeQuiz1)
 		return
@@ -119,7 +119,7 @@ func runCodeInDocker(tempDir, userCodeFilename, testCodeFilename, language strin
 	case "go":
 		goModPath := tempDir + "/go.mod"
 		if _, err := os.Stat(goModPath); errors.Is(err, os.ErrNotExist) {
-			if err := os.WriteFile(goModPath, []byte("module gotest\n\ngo 1.22.3"), 0644); err != nil {
+			if err := os.WriteFile(goModPath, []byte("module gotest\n\ngo 1.22.0"), 0644); err != nil {
 				return "", "", fmt.Errorf("failed to create go.mod")
 			}
 		} else if err != nil {

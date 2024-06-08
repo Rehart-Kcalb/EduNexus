@@ -177,3 +177,6 @@ select s.* from submissions s
 left join assignments on s.assignment_id = assignments.id
 left join courses on courses.id = assignments.course_id
 where assignments.course_id = $1;
+
+-- name: AddTeacher :exec
+Insert into course_teachers(user_id,course_id) values ($1,$2);

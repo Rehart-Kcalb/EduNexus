@@ -42,6 +42,11 @@ func HandleCreateCourse(DB *db.Queries) http.HandlerFunc {
 		if err != nil {
 			return
 		}
+		err = DB.AddTeacher(context.Background(), db.AddTeacherParams{UserID: user_id, CourseID: course_id})
+
+		if err != nil {
+			log.Println(err)
+		}
 
 		for _, name := range post_data.Categories {
 			category_id, err := DB.GetCategoryId(context.Background(), name)

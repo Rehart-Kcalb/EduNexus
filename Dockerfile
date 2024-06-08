@@ -11,14 +11,16 @@ COPY . .
 RUN go mod download
 
 # Build the Go binary (replace "main.go" with your actual entry point)
-RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o EduNexus  cmd/EduNexus/main.go
+RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o EduNexus cmd/EduNexus/main.go
 
-# Use a smaller image for production
-FROM alpine:latest
+# Use Docker's official Docker-in-Docker image
+FROM docker:dind
+
+# Install dependencies
+RUN apk add --no-cache bash
 
 # Set working directory
 WORKDIR /app
-
 
 # Copy the .env file
 COPY --from=builder /app/.env /app/.env
@@ -29,8 +31,7 @@ COPY --from=builder /app/EduNexus /app/EduNexus
 COPY --from=builder /app/sql/migrations /app/sql/migrations
 
 # Expose the port
-EXPOSE 8080 
+EXPOSE 8080
 
-# Start the EduNexus
-CMD ["/app/EduNexus"]
-
+# Start the Docker daemon and then the EduNexus app
+CMD ["sh", "-c", "dockerd-entrypoint.sh & /app/EduNexus"]

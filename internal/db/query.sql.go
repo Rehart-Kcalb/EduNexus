@@ -25,6 +25,20 @@ func (q *Queries) AddCategoryCourse(ctx context.Context, arg AddCategoryCoursePa
 	return err
 }
 
+const addTeacher = `-- name: AddTeacher :exec
+Insert into course_teachers(user_id,course_id) values ($1,$2)
+`
+
+type AddTeacherParams struct {
+	UserID   int64 `json:"user_id"`
+	CourseID int64 `json:"course_id"`
+}
+
+func (q *Queries) AddTeacher(ctx context.Context, arg AddTeacherParams) error {
+	_, err := q.db.Exec(ctx, addTeacher, arg.UserID, arg.CourseID)
+	return err
+}
+
 const allCategories = `-- name: AllCategories :many
 SELECT
   "name",
@@ -212,7 +226,6 @@ func (q *Queries) EnrollIntoCourse(ctx context.Context, arg EnrollIntoCoursePara
 	_, err := q.db.Exec(ctx, enrollIntoCourse, arg.CourseID, arg.UserID)
 	return err
 }
-
 
 
 const getAllSubmissions = `-- name: GetAllSubmissions :many
