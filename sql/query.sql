@@ -148,7 +148,7 @@ Insert into course_categories(course_id,category_id) values ($1,$2);
 -- name: CreateModule :one
 Insert into modules(title,course_id) values ($1,$2) returning id;
 
--- name: GetProgressByModule :many
+-- name: GetReadedLecturesByModule :many
 SELECT 
     m.id AS module_id,
     m.title AS module_name,
@@ -180,3 +180,6 @@ where assignments.course_id = $1;
 
 -- name: AddTeacher :exec
 Insert into course_teachers(user_id,course_id) values ($1,$2);
+
+-- name: GetModuleId :one
+select * from modules where course_id = $1 and title = $2;

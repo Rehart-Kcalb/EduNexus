@@ -1,18 +1,22 @@
 package handlers
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/json"
-	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"strings"
 
 	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/db"
 	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/types"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -110,35 +114,106 @@ func handleCodeSubmission(w http.ResponseWriter, r *http.Request, assignment db.
 }
 
 func runCodeInDocker(tempDir, userCodeFilename, testCodeFilename, language string) (string, string, error) {
-	var cmd *exec.Cmd
-
-	_ = userCodeFilename
-	_ = testCodeFilename
 	language = strings.ToLower(language)
 	switch language {
 	case "go":
 		goModPath := tempDir + "/go.mod"
-		if _, err := os.Stat(goModPath); errors.Is(err, os.ErrNotExist) {
+		log.Println(goModPath)
+		if _, err := os.Stat(goModPath); os.IsNotExist(err) {
 			if err := os.WriteFile(goModPath, []byte("module gotest\n\ngo 1.22.0"), 0644); err != nil {
-				return "", "", fmt.Errorf("failed to create go.mod")
+				return "", "", fmt.Errorf("failed to create go.mod: %v", err)
 			}
 		} else if err != nil {
 			return "", "", fmt.Errorf("error checking go.mod: %v", err)
 		}
-		cmd = exec.Command("docker", "run", "--rm", "-v", fmt.Sprintf("%s:/usr/src/app", tempDir), "-w", "/usr/src/app", "golang:1.22", "go", "test", "-v")
-		log.Println(cmd.Args)
-	// Add cases for other languages as needed
+
+		// Docker client initialization
+		cli, err := client.NewClientWithOpts(client.FromEnv)
+		if err != nil {
+			return "", "", fmt.Errorf("failed to create Docker client: %v", err)
+		}
+
+		// Pull the golang:1.22 image if not already present
+		if err := pullImage(cli, "golang:1.22"); err != nil {
+			return "", "", fmt.Errorf("failed to pull Docker image: %v", err)
+		}
+
+		// Create a container to run the tests
+		resp, err := cli.ContainerCreate(
+			context.Background(),
+			&container.Config{
+				Image:      "golang:1.22",
+				Cmd:        []string{"go", "test", "-v"},
+				WorkingDir: "/usr/src/app",
+				Volumes: map[string]struct{}{
+					tempDir: {},
+				},
+			},
+			&container.HostConfig{
+				Binds: []string{fmt.Sprintf("%s:/usr/src/app", tempDir)},
+			},
+			nil,
+			nil,
+			"",
+		)
+		if err != nil {
+			return "", "", fmt.Errorf("failed to create Docker container: %v", err)
+		}
+
+		// Start the container
+		if err := cli.ContainerStart(context.Background(), resp.ID, container.StartOptions{}); err != nil {
+			return "", "", fmt.Errorf("failed to start Docker container: %v", err)
+		}
+
+		// Wait for the container to finish
+		statusCh, errCh := cli.ContainerWait(context.Background(), resp.ID, container.WaitConditionNotRunning)
+		select {
+		case err := <-errCh:
+			if err != nil {
+				return "", "", fmt.Errorf("failed while waiting for Docker container: %v", err)
+			}
+		case <-statusCh:
+		}
+
+		// Retrieve the logs from the container
+		logsOptions := container.LogsOptions{
+			ShowStdout: true,
+			ShowStderr: true,
+			Since:      "",
+			Until:      "",
+			Timestamps: true,
+			Follow:     false,
+			Tail:       "",
+			Details:    true,
+		}
+		out, err := cli.ContainerLogs(context.Background(), resp.ID, logsOptions)
+		if err != nil {
+			return "", "", fmt.Errorf("failed to retrieve Docker container logs: %v", err)
+		}
+		defer out.Close()
+
+		output := new(strings.Builder)
+		if _, err := stdcopy.StdCopy(output, output, out); err != nil {
+			return "", "", fmt.Errorf("failed to copy Docker container logs: %v", err)
+		}
+
+		return output.String(), "", nil
+
 	default:
 		return "", "", fmt.Errorf("unsupported language: %s", language)
 	}
+}
 
-	output, err := cmd.CombinedOutput()
+func pullImage(cli *client.Client, image_ string) error {
+	out, err := cli.ImagePull(context.Background(), image_, image.PullOptions{})
 	if err != nil {
-		log.Println(err)
-		return "", "", fmt.Errorf("failed to execute test code: %v", err)
+		return err
 	}
+	defer out.Close()
 
-	return string(output), string(output), nil
+	io.Copy(os.Stdout, out)
+
+	return nil
 }
 
 func generateRandomFilename(length int, extension string, suffix string) (string, error) {

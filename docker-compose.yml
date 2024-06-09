@@ -43,6 +43,12 @@ services:
       DB_PORT: "${DB_PORT}"
       DB_HOST: "postgres"
       #DOCKER_HOST: tcp://docker:2375/
+      DOCKER_HOST: tcp://localhost:2376
+      DOCKER_TLS_VERIFY: 1
+      DOCKER_CERT_PATH: /certs/client
+    volumes:
+      - /var/lib/docker
+      - /certs/client
     ports:
       - "80:8080"
     depends_on: 

@@ -228,6 +228,7 @@ func (q *Queries) EnrollIntoCourse(ctx context.Context, arg EnrollIntoCoursePara
 }
 
 
+
 const getAllSubmissions = `-- name: GetAllSubmissions :many
 select s.id, s.assignment_id, s.delay, s.content, s.info, s.user_id from submissions s 
 left join assignments on s.assignment_id = assignments.id
@@ -546,6 +547,22 @@ func (q *Queries) GetLectureContent(ctx context.Context, id int64) (GetLectureCo
 	return i, err
 }
 
+const getModuleId = `-- name: GetModuleId :one
+select id, title, course_id from modules where course_id = $1 and title = $2
+`
+
+type GetModuleIdParams struct {
+	CourseID int64  `json:"course_id"`
+	Title    string `json:"title"`
+}
+
+func (q *Queries) GetModuleId(ctx context.Context, arg GetModuleIdParams) (Module, error) {
+	row := q.db.QueryRow(ctx, getModuleId, arg.CourseID, arg.Title)
+	var i Module
+	err := row.Scan(&i.ID, &i.Title, &i.CourseID)
+	return i, err
+}
+
 const getMyCourses = `-- name: GetMyCourses :many
 SELECT
   courses.title,
@@ -677,7 +694,7 @@ func (q *Queries) GetProfileInfo(ctx context.Context, id int64) (GetProfileInfoR
 	return i, err
 }
 
-const getProgressByModule = `-- name: GetProgressByModule :many
+const getReadedLecturesByModule = `-- name: GetReadedLecturesByModule :many
 SELECT 
     m.id AS module_id,
     m.title AS module_name,
@@ -693,12 +710,12 @@ SELECT
 where m.id = $1 and pr.user_id = $2
 `
 
-type GetProgressByModuleParams struct {
+type GetReadedLecturesByModuleParams struct {
 	ID     int64 `json:"id"`
 	UserID int64 `json:"user_id"`
 }
 
-type GetProgressByModuleRow struct {
+type GetReadedLecturesByModuleRow struct {
 	ModuleID         int64       `json:"module_id"`
 	ModuleName       string      `json:"module_name"`
 	AssignmentID     pgtype.Int8 `json:"assignment_id"`
@@ -706,15 +723,15 @@ type GetProgressByModuleRow struct {
 	Read             interface{} `json:"read"`
 }
 
-func (q *Queries) GetProgressByModule(ctx context.Context, arg GetProgressByModuleParams) ([]GetProgressByModuleRow, error) {
-	rows, err := q.db.Query(ctx, getProgressByModule, arg.ID, arg.UserID)
+func (q *Queries) GetReadedLecturesByModule(ctx context.Context, arg GetReadedLecturesByModuleParams) ([]GetReadedLecturesByModuleRow, error) {
+	rows, err := q.db.Query(ctx, getReadedLecturesByModule, arg.ID, arg.UserID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetProgressByModuleRow
+	var items []GetReadedLecturesByModuleRow
 	for rows.Next() {
-		var i GetProgressByModuleRow
+		var i GetReadedLecturesByModuleRow
 		if err := rows.Scan(
 			&i.ModuleID,
 			&i.ModuleName,
