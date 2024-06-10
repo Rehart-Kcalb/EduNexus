@@ -31,22 +31,22 @@ CREATE TABLE
     "description" TEXT NOT NULL,
     "image" varchar(500),
     "course_provider" BIGINT NOT NULL,
-    FOREIGN KEY ("course_provider") REFERENCES "users" ("id")
+    FOREIGN KEY ("course_provider") REFERENCES "users" ("id") ON DELETE CASCADE
   );
 
   CREATE TABLE
   "course_teachers" (
     "user_id" BIGINT NOT NULL,
     "course_id" BIGINT NOT NULL,
-    FOREIGN KEY ("user_id") REFERENCES "users" ("id"),
-    FOREIGN KEY ("course_id") REFERENCES "courses" ("id")
+    FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE,
+    FOREIGN KEY ("course_id") REFERENCES "courses" ("id") ON DELETE CASCADE
   );
 
   CREATE TABLE
   "course_categories" (
     "course_id" BIGINT NOT NULL,
     "category_id" BIGINT NOT NULL,
-    FOREIGN KEY ("course_id") REFERENCES "courses" ("id"),
+    FOREIGN KEY ("course_id") REFERENCES "courses" ("id") ON DELETE CASCADE,
     FOREIGN KEY ("category_id") REFERENCES "categories" ("id")
   );
 
@@ -56,8 +56,8 @@ CREATE TABLE
     "enrolled_on" DATE NOT NULL,
     "course_id" BIGINT NOT NULL,
     "user_id" BIGINT NOT NULL,
-    FOREIGN KEY ("course_id") REFERENCES "courses" ("id"),
-    FOREIGN KEY ("user_id") REFERENCES "users" ("id")
+    FOREIGN KEY ("course_id") REFERENCES "courses" ("id") ON DELETE CASCADE,
+    FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE
   );
 
   CREATE TABLE
@@ -65,7 +65,7 @@ CREATE TABLE
     "id" BIGSERIAL PRIMARY KEY,
     "title" VARCHAR(100) NOT NULL,
     "course_id" BIGINT NOT NULL,
-    FOREIGN KEY ("course_id") REFERENCES "courses" ("id")
+    FOREIGN KEY ("course_id") REFERENCES "courses" ("id") ON DELETE CASCADE
   );
 
   CREATE TABLE
@@ -84,8 +84,8 @@ CREATE TABLE
     "content" jsonb,
     "days" int,
     "assignment_type_id" BIGINT NOT NULL,
-    FOREIGN KEY ("module_id") REFERENCES "modules" ("id"),
-    FOREIGN KEY ("course_id") REFERENCES "courses" ("id"),
+    FOREIGN KEY ("module_id") REFERENCES "modules" ("id") ON DELETE CASCADE,
+    FOREIGN KEY ("course_id") REFERENCES "courses" ("id") ON DELETE CASCADE,
     FOREIGN KEY ("assignment_type_id") REFERENCES "assignments_types" ("id")
   );
 
@@ -107,8 +107,8 @@ CREATE TABLE
     "content" JSONB NOT NULL,
     "info" text  NULL,
     "user_id" BIGINT NOT NULL,
-    FOREIGN KEY ("user_id") REFERENCES "users" ("id"),
-    FOREIGN KEY ("assignment_id") REFERENCES "assignments" ("id")
+    FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE,
+    FOREIGN KEY ("assignment_id") REFERENCES "assignments" ("id") ON DELETE CASCADE
   );
 
   CREATE TABLE 
@@ -116,7 +116,9 @@ CREATE TABLE
     assignment_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
     done DATE NOT NULL,
-    pass bool NOT NULL
+    pass bool NOT NULL,
+    FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE,
+    FOREIGN KEY ("assignment_id") REFERENCES "assignments" ("id") ON DELETE CASCADE
   );
 
 
@@ -127,8 +129,8 @@ CREATE TABLE
     "title" VARCHAR(200) NOT NULL,
     "content" TEXT,
     "user_id" BIGINT NOT NULL,
-    FOREIGN KEY ("module_id") REFERENCES "modules" ("id"),
-    FOREIGN KEY ("user_id") REFERENCES "users" ("id")
+    FOREIGN KEY ("module_id") REFERENCES "modules" ("id") ON DELETE CASCADE,
+    FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE
   );
 
   CREATE TABLE
@@ -137,8 +139,8 @@ CREATE TABLE
     "user_id" BIGINT NOT NULL,
     "content" TEXT NOT NULL,
     "thread_id" BIGINT NOT NULL,
-    FOREIGN KEY ("user_id") REFERENCES "users" ("id"),
-    FOREIGN KEY ("thread_id") REFERENCES "threads" ("id")
+    FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE,
+    FOREIGN KEY ("thread_id") REFERENCES "threads" ("id") ON DELETE CASCADE
   );
 
   CREATE TABLE
@@ -146,6 +148,6 @@ CREATE TABLE
     "id" BIGSERIAL PRIMARY KEY,
     "comment_id" BIGINT NOT NULL,
     "rate" bool NOT NULL,
-    FOREIGN KEY ("comment_id") REFERENCES "comments" ("id")
+    FOREIGN KEY ("comment_id") REFERENCES "comments" ("id") ON DELETE CASCADE
   );
 
