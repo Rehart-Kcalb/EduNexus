@@ -103,7 +103,7 @@ func LoadMuxWithHandlers(m *http.ServeMux, DB *db.Queries) {
 	// * Get module progress
 	m.HandleFunc("GET /api/learning/{course_name}/modules/{module_name}", middleware.Auth(handlers.HandleGetModuleProgress(DB)))
 	// *- Mark lecture as read
-	m.HandleFunc("POST /api/learing/{course_name}/read/{lecture_id}", middleware.Auth(handlers.HandleReadLecture(DB)))
+	m.HandleFunc("POST /api/learning/{course_name}/read/{lecture_id}", middleware.Auth(handlers.HandleReadLecture(DB)))
 
 	// **Teaching functionalities (requires authentication)**
 	// * Gets all courses a user is teaching (GET /api/teaching/)

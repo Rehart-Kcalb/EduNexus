@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -16,8 +17,10 @@ func HandleReadLecture(DB *db.Queries) http.HandlerFunc {
 		if err != nil {
 			return
 		}
+		log.Println(assignment_id)
 		err = DB.MarkAssignmentDone(context.Background(), db.MarkAssignmentDoneParams{AssignmentID: int64(assignment_id), UserID: r.Context().Value("id").(int64)})
 		if err != nil {
+			log.Println(err)
 			return
 		}
 		types.NewJsonResponse(struct {

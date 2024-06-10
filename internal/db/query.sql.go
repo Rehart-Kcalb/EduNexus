@@ -548,7 +548,7 @@ func (q *Queries) GetLectureContent(ctx context.Context, id int64) (GetLectureCo
 }
 
 const getModuleId = `-- name: GetModuleId :one
-select id, title, course_id from modules where course_id = $1 and title = $2
+select id from modules where course_id = $1 and title = $2
 `
 
 type GetModuleIdParams struct {
@@ -556,11 +556,11 @@ type GetModuleIdParams struct {
 	Title    string `json:"title"`
 }
 
-func (q *Queries) GetModuleId(ctx context.Context, arg GetModuleIdParams) (Module, error) {
+func (q *Queries) GetModuleId(ctx context.Context, arg GetModuleIdParams) (int64, error) {
 	row := q.db.QueryRow(ctx, getModuleId, arg.CourseID, arg.Title)
-	var i Module
-	err := row.Scan(&i.ID, &i.Title, &i.CourseID)
-	return i, err
+	var id int64
+	err := row.Scan(&id)
+	return id, err
 }
 
 const getMyCourses = `-- name: GetMyCourses :many
@@ -618,19 +618,16 @@ func (q *Queries) GetMyCourses(ctx context.Context, userID int64) ([]GetMyCourse
 }
 
 const getMyTeached = `-- name: GetMyTeached :many
-Select id, title, description, image, course_provider, user_id, course_id from courses 
+Select distinct(courses.id), courses.title, courses.image,courses.description from courses 
 left join course_teachers on courses.id = course_teachers.course_id
 where course_teachers.user_id = $1
 `
 
 type GetMyTeachedRow struct {
-	ID             int64       `json:"id"`
-	Title          string      `json:"title"`
-	Description    string      `json:"description"`
-	Image          pgtype.Text `json:"image"`
-	CourseProvider int64       `json:"course_provider"`
-	UserID         pgtype.Int8 `json:"user_id"`
-	CourseID       pgtype.Int8 `json:"course_id"`
+	ID          int64       `json:"id"`
+	Title       string      `json:"title"`
+	Image       pgtype.Text `json:"image"`
+	Description string      `json:"description"`
 }
 
 func (q *Queries) GetMyTeached(ctx context.Context, userID int64) ([]GetMyTeachedRow, error) {
@@ -645,11 +642,8 @@ func (q *Queries) GetMyTeached(ctx context.Context, userID int64) ([]GetMyTeache
 		if err := rows.Scan(
 			&i.ID,
 			&i.Title,
-			&i.Description,
 			&i.Image,
-			&i.CourseProvider,
-			&i.UserID,
-			&i.CourseID,
+			&i.Description,
 		); err != nil {
 			return nil, err
 		}

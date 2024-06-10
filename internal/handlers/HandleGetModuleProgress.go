@@ -20,7 +20,7 @@ func HandleGetModuleProgress(DB *db.Queries) http.HandlerFunc {
 		if err != nil {
 			return
 		}
-		lecture_progress, err := DB.GetReadedLecturesByModule(context.Background(), db.GetReadedLecturesByModuleParams{UserID: user_id, ID: module_id.ID})
+		lecture_progress, err := DB.GetReadedLecturesByModule(context.Background(), db.GetReadedLecturesByModuleParams{UserID: user_id, ID: module_id})
 		if err != nil {
 			return
 		}

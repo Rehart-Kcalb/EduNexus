@@ -3,7 +3,7 @@ INSERT INTO
 VALUES
   (
     'Golang programming',
-    'This course will teach you, how to write a sigma blazingly fast code',
+    'Этот курс научит вас писать на современном и прагматичным сетевым языком Голан',
     3,
     'https://www.freecodecamp.org/news/content/images/2021/10/golang.png'
   ),
@@ -287,9 +287,44 @@ VALUES
 ;
 
 
-INSERT INTO
-  course_teachers (course_id, user_id)
+INSERT INTO course_teachers (course_id, user_id)
 VALUES
-  (1, 3), -- User 1 teach c++
-  (2, 4) -- User 1 teach calculus
-;
+  (1, 3),
+  (2, 4),
+  (3, 4),
+  (4, 3),
+  (5, 4),
+  (6, 4),
+  (7, 3),
+  (8, 3),
+  (9, 3),
+  (10, 4),
+  (11, 3),
+  (12, 3),
+  (13, 3),
+  (14, 3),
+  (15, 3),
+  (16, 4),
+  (17, 3),
+  (18, 3),
+  (19, 3),
+  (20, 3),
+  (21, 3),
+  (22, 4),
+  (23, 3),
+  (24, 4),
+  (25, 3),
+  (26, 4),
+  (27, 4),
+  (28, 4),
+  (29, 4),
+  (30, 4),
+  (31, 4),
+  (32, 4),
+  (33, 4),
+  (34, 4),
+  (35, 4),
+  (36, 4),
+  (37, 4),
+  (38, 4),
+  (39, 4);

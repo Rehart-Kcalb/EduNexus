@@ -135,7 +135,7 @@ where a.assignment_type_id = 1;
 Insert into assignments(module_id,course_id,title,description,content,assignment_type_id) values($1,$2,$3,$4,$5,$6);
 
 -- name: GetMyTeached :many
-Select * from courses 
+Select distinct(courses.id), courses.title, courses.image,courses.description from courses 
 left join course_teachers on courses.id = course_teachers.course_id
 where course_teachers.user_id = $1;
 
@@ -182,4 +182,4 @@ where assignments.course_id = $1;
 Insert into course_teachers(user_id,course_id) values ($1,$2);
 
 -- name: GetModuleId :one
-select * from modules where course_id = $1 and title = $2;
+select id from modules where course_id = $1 and title = $2;

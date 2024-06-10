@@ -32,7 +32,7 @@ func HandleUpdateProfileInfo(DB *db.Queries) http.HandlerFunc {
 			return
 		}
 		log.Println(filePath)
-		err = DB.UpdateProfileInfo(context.Background(), db.UpdateProfileInfoParams{Firstname: pgtype.Text{String: post_data.FirstName, Valid: true}, Description: pgtype.Text{String: post_data.Description, Valid: true}, Profile: pgtype.Text{String: filePath, Valid: true}})
+		err = DB.UpdateProfileInfo(context.Background(), db.UpdateProfileInfoParams{Firstname: pgtype.Text{String: post_data.FirstName, Valid: true}, Description: pgtype.Text{String: post_data.Description, Valid: true}, Profile: pgtype.Text{String: filePath, Valid: true}, ID: r.Context().Value("id").(int64)})
 		if err != nil {
 			return
 		}

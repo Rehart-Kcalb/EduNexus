@@ -3,14 +3,17 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/db"
+	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/types"
 )
 
 func HandleCreateLecture(DB *db.Queries) http.HandlerFunc {
 	type Lecture struct {
-		ModuleId    int64  `json:"module_id"`
+		Title       string `json:"title"`
+		ModuleName  string `json:"module_name"`
 		Description string `json:"description"`
 		Content     string `json:"content"`
 	}
@@ -24,9 +27,15 @@ func HandleCreateLecture(DB *db.Queries) http.HandlerFunc {
 		if err != nil {
 			return
 		}
-		err = DB.NewLecture(context.Background(), db.NewLectureParams{CourseID: course_id, ModuleID: post_data.ModuleId, Content: []byte(post_data.Content), Description: post_data.Description})
+
+		module_id, err := DB.GetModuleId(context.Background(), db.GetModuleIdParams{Title: post_data.ModuleName, CourseID: course_id})
+
+		err = DB.NewLecture(context.Background(), db.NewLectureParams{CourseID: course_id, ModuleID: module_id, Content: []byte(fmt.Sprintf("{\"content\":\"%s\"}", post_data.Content)), Description: post_data.Description, Title: post_data.Title})
 		if err != nil {
 			return
 		}
+		types.NewJsonResponse(struct {
+			Status string `json:"status"`
+		}{"success"}, http.StatusOK).Respond(w)
 	}
 }
