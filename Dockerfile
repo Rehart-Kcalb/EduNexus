@@ -28,6 +28,10 @@ COPY --from=builder /app/.env /app/.env
 # Copy the binary
 COPY --from=builder /app/EduNexus /app/EduNexus
 
+COPY --from=builder /app/storage /app/storage
+
+COPY --from=builder /app/assets /app/assets
+
 COPY --from=builder /app/sql/migrations /app/sql/migrations
 
 # Expose the port

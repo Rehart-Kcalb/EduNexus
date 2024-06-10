@@ -64,6 +64,9 @@ func LoadMuxWithHandlers(m *http.ServeMux, DB *db.Queries) {
 	m.HandleFunc("GET /api/profile", middleware.Auth(handlers.HandleGetProfileInfo(DB)))
 	m.HandleFunc("POST /api/profile", middleware.Auth(handlers.HandleUpdateProfileInfo(DB)))
 
+	// ** Assets
+	m.HandleFunc("GET /file/{path...}", handlers.HandleGetAsset())
+
 	// **Course Management**
 	// * Gets all available categories (GET /api/categories/)
 	m.HandleFunc("GET /api/categories/", handlers.HandleGetAllCategories(DB))
