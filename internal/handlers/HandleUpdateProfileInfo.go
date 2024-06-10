@@ -3,10 +3,13 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/db"
 	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/types"
+	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/utils"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -22,7 +25,14 @@ func HandleUpdateProfileInfo(DB *db.Queries) http.HandlerFunc {
 		if err != nil {
 			return
 		}
-		err = DB.UpdateProfileInfo(context.Background(), db.UpdateProfileInfoParams{Firstname: pgtype.Text{String: post_data.FirstName}, Description: pgtype.Text{String: post_data.Description}, Profile: pgtype.Text{String: post_data.Profile}})
+
+		filePath, err := utils.SaveBase64ToFile(post_data.Profile, "storage")
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error saving file: %v", err), http.StatusInternalServerError)
+			return
+		}
+		log.Println(filePath)
+		err = DB.UpdateProfileInfo(context.Background(), db.UpdateProfileInfoParams{Firstname: pgtype.Text{String: post_data.FirstName, Valid: true}, Description: pgtype.Text{String: post_data.Description, Valid: true}, Profile: pgtype.Text{String: filePath, Valid: true}})
 		if err != nil {
 			return
 		}

@@ -4,6 +4,7 @@ go 1.22.0
 
 require (
 	github.com/docker/docker v26.1.4+incompatible
+	github.com/gabriel-vasile/mimetype v1.4.4
 	github.com/golang-migrate/migrate/v4 v4.17.1
 	github.com/jackc/pgx/v5 v5.5.5
 	github.com/rs/cors v1.11.0

@@ -191,9 +191,9 @@ func (q *Queries) CreateSubmission(ctx context.Context, arg CreateSubmissionPara
 
 const createUser = `-- name: CreateUser :exec
 INSERT INTO
-  users ("login", "password", "user_role_id")
+  users ("login", "password", "user_role_id", firstname)
 VALUES
-  ($1, $2, 1)
+  ($1, $2, 1,$1)
 `
 
 type CreateUserParams struct {
