@@ -23,7 +23,7 @@ VALUES
             "code_test": "package main\n\nimport \"testing\"\n\n// sumator adds two integers and returns the result\n// TestSumator tests the sumator function\nfunc TestSumator(t *testing.T) {\n    tests := []struct {\n        i1, i2, expected int\n    }{\n        {1, 2, 3},\n        {-1, -1, -2},\n        {0, 0, 0},\n        {123, 456, 579},\n    }\n\n    for _, test := range tests {\n        result := sumator(test.i1, test.i2)\n        if result != test.expected {\n            t.Errorf(\"sumator(%d, %d) = %d; want %d\", test.i1, test.i2, result, test.expected)\n        }\n    }\n}",
             "quiz_question": ""
     }',
-    null
+    null,
     3
 );
 
@@ -40,7 +40,7 @@ VALUES
             "code_test": "package main\n\nimport \"testing\"\n\n// reverseString reverses the given string\n// TestReverseString tests the reverseString function\nfunc TestReverseString(t *testing.T) {\n    tests := []struct {\n        input, expected string\n    }{\n        {\"hello\", \"olleh\"},\n        {\"world\", \"dlrow\"},\n        {\"Go\", \"oG\"},\n        {\"\", \"\"},\n    }\n\n    for _, test := range tests {\n        result := reverseString(test.input)\n        if result != test.expected {\n            t.Errorf(\"reverseString(%s) = %s; want %s\", test.input, result, test.expected)\n        }\n    }\n}",
             "quiz_question": ""
     }',
-    null
+    null,
     3
 );
 
@@ -57,7 +57,7 @@ VALUES
             "code_test": "package main\n\nimport \"testing\"\n\n// isPalindrome checks if a given string is a palindrome\n// TestIsPalindrome tests the isPalindrome function\nfunc TestIsPalindrome(t *testing.T) {\n    tests := []struct {\n        input string\n        expected bool\n    }{\n        {\"madam\", true},\n        {\"racecar\", true},\n        {\"hello\", false},\n        {\"\", true},\n        {\"a\", true},\n    }\n\n    for _, test := range tests {\n        result := isPalindrome(test.input)\n        if result != test.expected {\n            t.Errorf(\"isPalindrome(%s) = %v; want %v\", test.input, result, test.expected)\n        }\n    }\n}",
             "quiz_question": ""
     }',
-    null
+    null,
     3
 );
 
@@ -74,7 +74,7 @@ VALUES
             "code_test": "package main\n\nimport \"testing\"\n\n// maxInArray finds the largest number in an array\n// TestMaxInArray tests the maxInArray function\nfunc TestMaxInArray(t *testing.T) {\n    tests := []struct {\n        input []int\n        expected int\n    }{\n        {[]int{1, 2, 3}, 3},\n        {[]int{-1, -3, -2}, -1},\n        {[]int{0, 10, -10}, 10},\n        {[]int{123, 456, 789}, 789},\n    }\n\n    for _, test := range tests {\n        result := maxInArray(test.input)\n        if result != test.expected {\n            t.Errorf(\"maxInArray(%v) = %d; want %d\", test.input, result, test.expected)\n        }\n    }\n}",
             "quiz_question": ""
     }',
-    null
+    null,
     3
 );
 
