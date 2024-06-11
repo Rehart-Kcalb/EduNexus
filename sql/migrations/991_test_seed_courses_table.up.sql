@@ -101,25 +101,25 @@ VALUES
     'Введение в искусственный интеллект',
     'Основы искусственного интеллекта и его применение в различных областях',
     3,
-    ''
+    'https://cdn.vectorstock.com/i/500p/33/66/artificial-intelligence-icon-sign-logo-vector-49693366.jpg'
   ),
   (
     'Программирование на Java',
     'Курс по программированию на языке Java для начинающих',
     3,
-    ''
+    'https://logos-world.net/wp-content/uploads/2022/07/Java-Logo.jpg'
   ),
   (
     'DevOps основы',
     'Введение в DevOps методологии и инструменты, такие как Jenkins и Kubernetes',
     3,
-    ''
+    'https://cloud.vk.com/wp-content/uploads/2021/02/Razrabotka-1024x597.png'
   ),
   (
     'Проектный менеджмент с использованием Agile',
     'Основы управления проектами с использованием методологии Agile',
     3,
-    ''
+    'https://cdnb.ganttpro.com/uploads/2021/02/5.-agile-i-dr.-metodologii-1024x665.jpg'
   ),
   (
     'Мобильная разработка на Android',

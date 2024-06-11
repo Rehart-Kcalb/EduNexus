@@ -85,7 +85,8 @@ func handleCodeSubmission(w http.ResponseWriter, r *http.Request, assignment db.
 	}
 
 	log.Println(expectedOutput)
-	testCaseNum := strings.Count(expectedOutput, "RUN")
+	//testCaseNum := strings.Count(expectedOutput, "RUN")
+	passCaseNum := strings.Count(expectedOutput, "PASS")
 	failCaseNum := strings.Count(expectedOutput, "FAIL")
 
 	content, err := json.Marshal(struct {
@@ -98,7 +99,7 @@ func handleCodeSubmission(w http.ResponseWriter, r *http.Request, assignment db.
 	err = DB.CreateSubmission(r.Context(), db.CreateSubmissionParams{
 		Content:      content,
 		AssignmentID: assignment.ID,
-		Info:         pgtype.Text{String: fmt.Sprintf("%d/%d", testCaseNum-failCaseNum, testCaseNum), Valid: true},
+		Info:         pgtype.Text{String: fmt.Sprintf("%d/%d", passCaseNum, passCaseNum+failCaseNum), Valid: true},
 		UserID:       r.Context().Value("id").(int64),
 	})
 	if err != nil {
@@ -110,7 +111,7 @@ func handleCodeSubmission(w http.ResponseWriter, r *http.Request, assignment db.
 
 	types.NewJsonResponse(struct {
 		Passed string `json:"test_passed"`
-	}{fmt.Sprintf("%d/%d", testCaseNum-failCaseNum, testCaseNum)}, http.StatusOK).Respond(w)
+	}{fmt.Sprintf("%d/%d", passCaseNum, passCaseNum+failCaseNum)}, http.StatusOK).Respond(w)
 }
 
 func runCodeInDocker(tempDir, userCodeFilename, testCodeFilename, language string) (string, string, error) {
