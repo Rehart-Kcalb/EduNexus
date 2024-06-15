@@ -2,6 +2,8 @@ package utils
 
 import "regexp"
 
-func HasNonPatternChars(str, pattern string) bool {
-	return regexp.MustCompile(pattern).MatchString(str)
+// HasNonPatternChars checks if the string contains characters that don't match the given pattern.
+func HasNonPatternChars(s, pattern string) bool {
+	re := regexp.MustCompile(pattern)
+	return re.MatchString(s)
 }

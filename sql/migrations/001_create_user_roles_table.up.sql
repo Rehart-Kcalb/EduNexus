@@ -84,6 +84,7 @@ CREATE TABLE
     "content" jsonb,
     "days" int,
     "assignment_type_id" BIGINT NOT NULL,
+    "created_at" DATE default now(),
     FOREIGN KEY ("module_id") REFERENCES "modules" ("id") ON DELETE CASCADE,
     FOREIGN KEY ("course_id") REFERENCES "courses" ("id") ON DELETE CASCADE,
     FOREIGN KEY ("assignment_type_id") REFERENCES "assignments_types" ("id")
