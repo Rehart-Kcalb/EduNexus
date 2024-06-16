@@ -1,5 +1,5 @@
 # Use a specific Golang version
-FROM golang:1.22.0-alpine as builder
+FROM golang:1.22 as builder
 
 # Set working directory
 WORKDIR /app

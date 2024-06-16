@@ -16,7 +16,7 @@ func HandleGetMyTeached(DB *db.Queries) http.HandlerFunc {
 		if err != nil {
 			types.NewJsonResponse(struct {
 				Courses any `json:"courses"`
-			}{[]any{}}, http.StatusOK).Respond(w)
+			}{courses}, http.StatusOK).Respond(w)
 			return
 		}
 		types.NewJsonResponse(struct {

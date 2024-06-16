@@ -20,11 +20,14 @@ func HandleReadLecture(DB *db.Queries) http.HandlerFunc {
 		log.Println(assignment_id)
 		err = DB.MarkAssignmentDone(context.Background(), db.MarkAssignmentDoneParams{AssignmentID: int64(assignment_id), UserID: r.Context().Value("id").(int64)})
 		if err != nil {
+			types.NewJsonResponse(struct {
+				Message string `json:"message"`
+			}{"ошибка при сохранении"}, http.StatusOK).Respond(w)
 			log.Println(err)
 			return
 		}
 		types.NewJsonResponse(struct {
 			Message string `json:"message"`
-		}{"success"}, http.StatusOK)
+		}{"success"}, http.StatusOK).Respond(w)
 	}
 }

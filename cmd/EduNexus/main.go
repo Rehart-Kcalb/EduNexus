@@ -62,6 +62,7 @@ func LoadMuxWithHandlers(m *http.ServeMux, DB *db.Queries) {
 	m.HandleFunc("POST /api/register", handlers.HandleRegister(DB))
 	// * Show User profile
 	m.HandleFunc("GET /api/profile", middleware.Auth(handlers.HandleGetProfileInfo(DB)))
+	m.HandleFunc("GET /api/profile/{user_name}", middleware.Auth(handlers.HandleGetProfileInfo(DB)))
 	m.HandleFunc("POST /api/profile", middleware.Auth(handlers.HandleUpdateProfileInfo(DB)))
 
 	// ** Assets
@@ -87,7 +88,7 @@ func LoadMuxWithHandlers(m *http.ServeMux, DB *db.Queries) {
 
 	// **Learning Management (requires authentication)**
 	// * Gets an assignments for a specific course (GET /api/learning/{course_name}/assignments)
-	m.HandleFunc("GET /api/learning/{course_name}/assignments", handlers.HandleGetAssignments(DB))
+	m.HandleFunc("GET /api/learning/{course_name}/assignments", middleware.Auth(handlers.HandleGetAssignments(DB)))
 	// * Gets an assignment within a course (GET /api/learning/{course_name}/assignment/{assignment_id})
 	m.HandleFunc("GET /api/learning/{course_name}/assignments/{assignment_id}", middleware.Auth(handlers.HandleGetAssignment(DB)))
 	// * Gets the content of a submitted assignment (GET /api/learning/{course_name}/{assignment_id}/{submission_id})
@@ -104,6 +105,7 @@ func LoadMuxWithHandlers(m *http.ServeMux, DB *db.Queries) {
 	m.HandleFunc("GET /api/learning/{course_name}/modules/{module_name}", middleware.Auth(handlers.HandleGetModuleProgress(DB)))
 	// *- Mark lecture as read
 	m.HandleFunc("POST /api/learning/{course_name}/read/{lecture_id}", middleware.Auth(handlers.HandleReadLecture(DB)))
+	m.HandleFunc("GET /api/learning/{course_name}/last_grades", middleware.Auth(handlers.HandleLastGrades(DB)))
 
 	// **Teaching functionalities (requires authentication)**
 	// * Gets all courses a user is teaching (GET /api/teaching/)

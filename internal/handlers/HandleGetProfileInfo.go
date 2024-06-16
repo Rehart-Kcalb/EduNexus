@@ -10,8 +10,26 @@ import (
 
 func HandleGetProfileInfo(DB *db.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		user_prof_info, err := DB.GetProfileInfo(context.Background(), r.Context().Value("id").(int64))
+		var user_id int64
+		user_name := r.PathValue("user_name")
+		if user_name != "" {
+			claims, err := DB.GetClaimsByLogin(context.Background(), user_name)
+			if err != nil {
+				types.NewJsonResponse(struct {
+					Message string `json:"message"`
+				}{"Нет такого пользователя"}, http.StatusBadRequest).Respond(w)
+				return
+			}
+			user_id = claims.ID
+		} else {
+			user_id = r.Context().Value("id").(int64)
+		}
+
+		user_prof_info, err := DB.GetProfileInfo(context.Background(), user_id)
 		if err != nil {
+			types.NewJsonResponse(struct {
+				Message string `json:"message"`
+			}{"Ошибка при получении данных пользователя"}, http.StatusInternalServerError).Respond(w)
 			return
 		}
 		_ = user_prof_info

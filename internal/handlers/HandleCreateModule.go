@@ -24,11 +24,17 @@ func HandleCreateModule(DB *db.Queries) http.HandlerFunc {
 		course_name := r.PathValue("course_name")
 		course_id, err := DB.GetCourseId(context.Background(), course_name)
 		if err != nil {
+			types.NewJsonResponse(struct {
+				Message string `json:"message"`
+			}{"Нет такого курса"}, http.StatusBadRequest).Respond(w)
 			return
 		}
 		_ = course_id
 		module_id, err := DB.CreateModule(context.Background(), db.CreateModuleParams{CourseID: course_id, Title: post_data.Title})
 		if err != nil {
+			types.NewJsonResponse(struct {
+				Message string `json:"message"`
+			}{"Проблемы с БД"}, http.StatusInternalServerError).Respond(w)
 			return
 		}
 

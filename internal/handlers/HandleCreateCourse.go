@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -31,40 +30,55 @@ func HandleCreateCourse(DB *db.Queries) http.HandlerFunc {
 			if errors.Is(err, io.EOF) {
 				// TODO:Make error to send data
 			} else {
-				log.Println("Error while decoding" + err.Error())
+				log.Println("Ошибка при декодировании" + err.Error())
 			}
 		}
 		if len(post_data.Title) < 5 {
 			types.NewJsonResponse(struct {
-				ErrorMessage string `json:"error_message"`
-			}{"Title so short"}, http.StatusBadRequest).Respond(w)
+				ErrorMessage string `json:"message"`
+			}{"Название слишком короткое, длина >= 5"}, http.StatusBadRequest).Respond(w)
 			return
 		}
 		filePath, err := utils.SaveBase64ToFile(post_data.Image, "storage")
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Error saving file: %v", err), http.StatusInternalServerError)
+			types.NewJsonResponse(struct {
+				Message string `json:"message"`
+			}{"Проблемы с сохранением обложки курса"}, http.StatusInternalServerError).Respond(w)
 			return
 		}
 		log.Println(filePath)
 		log.Println(pgtype.Text{String: filePath, Valid: true})
 		course_id, err := DB.CreateCourse(context.Background(), db.CreateCourseParams{Title: post_data.Title, Description: post_data.Description, Image: pgtype.Text{String: filePath, Valid: true}, CourseProvider: user_id})
 		if err != nil {
+			types.NewJsonResponse(struct {
+				Message string `json:"message"`
+			}{"Проблемы с БД"}, http.StatusInternalServerError).Respond(w)
 			log.Println(err)
 			return
 		}
 		err = DB.AddTeacher(context.Background(), db.AddTeacherParams{UserID: user_id, CourseID: course_id})
 
 		if err != nil {
+			types.NewJsonResponse(struct {
+				Message string `json:"message"`
+			}{"Проблемы с БД"}, http.StatusInternalServerError).Respond(w)
 			log.Println(err)
 		}
 
 		for _, name := range post_data.Categories {
 			category_id, err := DB.GetCategoryId(context.Background(), name)
 			if err != nil {
-				log.Println(err)
+				types.NewJsonResponse(struct {
+					Message string `json:"message"`
+				}{"Нет такой категории"}, http.StatusBadRequest).Respond(w)
 				return
 			}
-			DB.AddCategoryCourse(context.Background(), db.AddCategoryCourseParams{CourseID: course_id, CategoryID: category_id})
+			err = DB.AddCategoryCourse(context.Background(), db.AddCategoryCourseParams{CourseID: course_id, CategoryID: category_id})
+			if err != nil {
+				types.NewJsonResponse(struct {
+					Message string `json:"message"`
+				}{"Проблемы с БД"}, http.StatusInternalServerError).Respond(w)
+			}
 		}
 		types.NewJsonResponse(struct {
 			Status string `json:"status"`

@@ -27,21 +27,21 @@ func handleMatchingSubmission(w http.ResponseWriter, r *http.Request, assignment
 	var matchingQuiz MatchingQuiz
 	if err := json.Unmarshal([]byte(assignment.Content), &matchingQuiz); err != nil {
 		types.NewJsonResponse(struct {
-			Message string `json:"error message"`
-		}{"Failed to parse assignment content"}, http.StatusInternalServerError).Respond(w)
+			Message string `json:"message"`
+		}{"Ошибка при парсинге задания"}, http.StatusInternalServerError).Respond(w)
 		return
 	}
 	var userMatchingSubmission UserMatchingSubmission
 	if err := json.NewDecoder(r.Body).Decode(&userMatchingSubmission); err != nil {
 		types.NewJsonResponse(struct {
-			Message string `json:"error message"`
-		}{"Failed to parse matching submission"}, http.StatusBadRequest).Respond(w)
+			Message string `json:"message"`
+		}{"Ошибка при парсинге подачи"}, http.StatusBadRequest).Respond(w)
 		return
 	}
 	if len(matchingQuiz.MatchingPairs) != len(userMatchingSubmission.MatchingPairs) {
 		types.NewJsonResponse(struct {
-			Message string `json:"error message"`
-		}{"Invalid submission"}, http.StatusBadRequest).Respond(w)
+			Message string `json:"message"`
+		}{"Невалидная подаяа"}, http.StatusBadRequest).Respond(w)
 		return
 	}
 	wrong := 0
@@ -54,8 +54,8 @@ func handleMatchingSubmission(w http.ResponseWriter, r *http.Request, assignment
 	err := DB.CreateSubmission(context.Background(), db.CreateSubmissionParams{AssignmentID: assignment.ID, UserID: 1, Info: pgtype.Text{String: fmt.Sprintf("%d/%d", len(matchingQuiz.MatchingPairs)-wrong, len(matchingQuiz.MatchingPairs))}})
 	if err != nil {
 		types.NewJsonResponse(struct {
-			Message string `json:"error message"`
-		}{"Failed to create submission"}, http.StatusInternalServerError).Respond(w)
+			Message string `json:"message"`
+		}{"Ошибка при создания попытки"}, http.StatusInternalServerError).Respond(w)
 		return
 	}
 }

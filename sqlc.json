@@ -7,7 +7,9 @@
     "gen": {
       "go": {
         "out": "/internal/db",
+        "emit_empty_slices" : true,
         "emit_json_tags": true,
+        "emit_prepared_queries":true,
         "sql_package": "pgx/v5"
       }
     }

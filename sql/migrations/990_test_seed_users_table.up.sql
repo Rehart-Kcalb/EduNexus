@@ -30,7 +30,7 @@ VALUES
     1,
     'Rehart-Kcalb Academy',
     '',
-    'https://scontent.ftse2-1.fna.fbcdn.net/v/t39.30808-6/304285103_755447922508796_3330221436121654290_n.png?_nc_cat=107&ccb=1-7&_nc_sid=5f2048&_nc_ohc=5sj_c2pp5_QQ7kNvgEvcuTP&_nc_ht=scontent.ftse2-1.fna&oh=00_AYDKAVXDn9Qc20PsxbPmlKayHgiQcYFqzuzglVDaxbvSwA&oe=6665F460'
+    'assets/rehart.png'
   ),
   (
     'sigmauni',

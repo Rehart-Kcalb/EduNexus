@@ -36,6 +36,9 @@ func HandleFilter(DB *db.Queries) http.HandlerFunc {
 			course_id, err := DB.GetCategoryId(context.Background(), name)
 			if err != nil {
 				log.Println(err)
+				types.NewJsonResponse(struct {
+					Message string `json:"message"`
+				}{"Нет такой категории"}, http.StatusBadRequest).Respond(w)
 				return
 			}
 			course_ids = append(course_ids, course_id)
@@ -47,6 +50,9 @@ func HandleFilter(DB *db.Queries) http.HandlerFunc {
 		}
 		count, err := DB.CountCourses(context.Background(), db.CountCoursesParams{TitleParam: post_data.Title, Column2: course_ids})
 		if err != nil {
+			types.NewJsonResponse(struct {
+				Message string `json:"message"`
+			}{"Проблемы с БД"}, http.StatusInternalServerError).Respond(w)
 			// TODO: error handler
 			return
 		}

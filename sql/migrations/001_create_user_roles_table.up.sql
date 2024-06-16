@@ -108,6 +108,7 @@ CREATE TABLE
     "content" JSONB NOT NULL,
     "info" text  NULL,
     "user_id" BIGINT NOT NULL,
+    "submitted_at" DATE default now(),
     FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE,
     FOREIGN KEY ("assignment_id") REFERENCES "assignments" ("id") ON DELETE CASCADE
   );

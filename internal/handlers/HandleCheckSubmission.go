@@ -20,16 +20,16 @@ func HandleCheckSubmission(DB *db.Queries) http.HandlerFunc {
 		if err != nil {
 			// TODO: Make error handler
 			types.NewJsonResponse(struct {
-				Message string `json:"error message"`
-			}{"Invalid assignment id"}, http.StatusBadRequest).Respond(w)
+				Message string `json:"message"`
+			}{"Айди задания должен быть натуральным числом"}, http.StatusBadRequest).Respond(w)
 			return
 		}
 		_ = assignment_id_num
 		assignment, err := DB.GetAssignmentById(context.Background(), int64(assignment_id_num))
 		if err != nil {
 			types.NewJsonResponse(struct {
-				Message string `json:"error message"`
-			}{"Failed to get assignment"}, http.StatusBadRequest).Respond(w)
+				Message string `json:"message"`
+			}{"Нет такого задания"}, http.StatusBadRequest).Respond(w)
 			return
 		}
 		log.Println(assignment)

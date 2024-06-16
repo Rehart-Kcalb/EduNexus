@@ -16,14 +16,16 @@ func HandleGetCategoryCourses(DB *db.Queries) http.HandlerFunc {
 		PagParams := utils.GetPaginationParams(r.URL.Query())
 		category_name := r.PathValue("category_name")
 		if category_name == "" {
-			w.WriteHeader(http.StatusBadRequest)
+			types.NewJsonResponse(struct {
+				Message string `json:"message"`
+			}{"Отсутсвует категория"}, http.StatusBadRequest).Respond(w)
 			return
 		}
 		course_id, err := DB.GetCategoryId(context.Background(), category_name)
 		if err != nil {
 			types.NewJsonResponse(struct {
-				ErrorMessage string `json:"error_message"`
-			}{"Нет такой категории"}, http.StatusOK).Respond(w)
+				ErrorMessage string `json:"message"`
+			}{"Нет такой категории"}, http.StatusBadRequest).Respond(w)
 			return
 		}
 		log.Println(course_id)

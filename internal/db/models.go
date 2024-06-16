@@ -17,6 +17,7 @@ type Assignment struct {
 	Content          []byte      `json:"content"`
 	Days             pgtype.Int4 `json:"days"`
 	AssignmentTypeID int64       `json:"assignment_type_id"`
+	CreatedAt        pgtype.Date `json:"created_at"`
 }
 
 type AssignmentsType struct {
@@ -88,6 +89,7 @@ type Submission struct {
 	Content      []byte      `json:"content"`
 	Info         pgtype.Text `json:"info"`
 	UserID       int64       `json:"user_id"`
+	SubmittedAt  pgtype.Date `json:"submitted_at"`
 }
 
 type Thread struct {

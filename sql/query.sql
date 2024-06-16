@@ -150,7 +150,7 @@ Insert into modules(title,course_id) values ($1,$2) returning id;
 
 -- name: GetReadedLecturesByModule :many
 SELECT 
-    m.id AS module_id,
+    distinct(m.id) AS module_id,
     m.title AS module_name,
     a.id AS assignment_id,
 	a.assignment_type_id,
@@ -183,3 +183,10 @@ Insert into course_teachers(user_id,course_id) values ($1,$2);
 
 -- name: GetModuleId :one
 select id from modules where course_id = $1 and title = $2;
+
+-- name: GetLastGrades :many
+SELECT distinct(assignments.title), info, submissions.submitted_at FROM public.submissions 
+	left join assignments on assignments.id = submissions.assignment_id
+	left join courses on courses.id = assignments.course_id
+where user_id = $1 and courses.title = $2
+order by submissions.submitted_at desc;

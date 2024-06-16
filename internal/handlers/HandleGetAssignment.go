@@ -14,6 +14,9 @@ func HandleGetAssignment(DB *db.Queries) http.HandlerFunc {
 		assignment_id_str := r.PathValue("assignment_id")
 		assignment_id, err := strconv.Atoi(assignment_id_str)
 		if err != nil {
+			types.NewJsonResponse(struct {
+				Message string `json:"message"`
+			}{"Айди задания должен быть натуральным числом"}, http.StatusBadRequest).Respond(w)
 			return
 		}
 		assignment, err := DB.GetAssignmentById(context.Background(), int64(assignment_id))

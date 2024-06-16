@@ -13,6 +13,9 @@ func HandleGetMyCourses(DB *db.Queries) http.HandlerFunc {
 		user_id := r.Context().Value("id").(int64)
 		courses, err := DB.GetMyCourses(context.Background(), user_id)
 		if err != nil {
+			types.NewJsonResponse(struct {
+				Message string `json:"message"`
+			}{"Ошибка при получении данных с БД"}, http.StatusInternalServerError).Respond(w)
 			// TODO: Handle Error
 			return
 		}

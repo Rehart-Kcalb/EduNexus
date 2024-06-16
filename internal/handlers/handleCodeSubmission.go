@@ -34,13 +34,17 @@ func handleCodeSubmission(w http.ResponseWriter, r *http.Request, assignment db.
 	var codeQuiz1 codeQuiz
 	/* log.Println(assignment.Content) */
 	if err := json.Unmarshal([]byte(assignment.Content), &codeQuiz1); err != nil {
-		http.Error(w, "Failed to parse assignment content", http.StatusInternalServerError)
+		types.NewJsonResponse(struct {
+			Message string `json:"message"`
+		}{"Провал при парсинге задания"}, http.StatusBadRequest).Respond(w)
 		return
 	}
 
 	var codeSub1 CodeSub
 	if err := json.NewDecoder(r.Body).Decode(&codeSub1); err != nil {
-		http.Error(w, "Failed to parse code submission", http.StatusBadRequest)
+		types.NewJsonResponse(struct {
+			Message string `json:"message"`
+		}{"Провал при парсинге кода попытки"}, http.StatusBadRequest).Respond(w)
 		return
 	}
 	log.Println(codeSub1)
@@ -48,7 +52,9 @@ func handleCodeSubmission(w http.ResponseWriter, r *http.Request, assignment db.
 	// Create a temporary directory
 	tempDir, err := os.MkdirTemp("", "code_submission")
 	if err != nil {
-		http.Error(w, "Failed to create temporary directory", http.StatusInternalServerError)
+		types.NewJsonResponse(struct {
+			Message string `json:"message"`
+		}{"Провал при создании временной папки"}, http.StatusInternalServerError).Respond(w)
 		return
 	}
 	defer os.RemoveAll(tempDir)
@@ -56,28 +62,38 @@ func handleCodeSubmission(w http.ResponseWriter, r *http.Request, assignment db.
 	// Write the user's code and test code to the temporary directory
 	userCodeFilename, err := generateRandomFilename(5, codeQuiz1.Language, "")
 	if err != nil {
-		http.Error(w, "Failed to generate user code filename", http.StatusInternalServerError)
+		types.NewJsonResponse(struct {
+			Message string `json:"message"`
+		}{"Провал при создании имени для файла с кодом пользователя"}, http.StatusInternalServerError).Respond(w)
 		return
 	}
 	testCodeFilename, err := generateRandomFilename(5, codeQuiz1.Language, "_test")
 	if err != nil {
-		http.Error(w, "Failed to generate test code filename", http.StatusInternalServerError)
+		types.NewJsonResponse(struct {
+			Message string `json:"message"`
+		}{"Провал при создании имени для файла с тестами"}, http.StatusInternalServerError).Respond(w)
 		return
 	}
 
 	if err := os.WriteFile(tempDir+"/"+userCodeFilename, []byte(codeSub1.Code), 0644); err != nil {
-		http.Error(w, "Failed to write user code to file", http.StatusInternalServerError)
+		types.NewJsonResponse(struct {
+			Message string `json:"message"`
+		}{"Провал при записи кода пользователя в файл"}, http.StatusInternalServerError).Respond(w)
 		return
 	}
 	if err := os.WriteFile(tempDir+"/"+testCodeFilename, []byte(codeQuiz1.CodeTest), 0644); err != nil {
-		http.Error(w, "Failed to write test code to file", http.StatusInternalServerError)
+		types.NewJsonResponse(struct {
+			Message string `json:"message"`
+		}{"Провал при записи кода тестов в файл"}, http.StatusInternalServerError).Respond(w)
 		return
 	}
 
 	// Run the tests in Docker
 	expectedOutput, _, err := runCodeInDocker(tempDir, userCodeFilename, testCodeFilename, codeQuiz1.Language)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to execute code docker: %v", err), http.StatusInternalServerError)
+		types.NewJsonResponse(struct {
+			Message string `json:"message"`
+		}{fmt.Sprintf("Провал при запуске кода Докером: %v", err)}, http.StatusInternalServerError).Respond(w)
 		log.Println("expected output:", expectedOutput)
 		log.Println(err)
 		log.Println(codeQuiz1)
@@ -86,8 +102,8 @@ func handleCodeSubmission(w http.ResponseWriter, r *http.Request, assignment db.
 
 	log.Println(expectedOutput)
 	//testCaseNum := strings.Count(expectedOutput, "RUN")
-	passCaseNum := strings.Count(expectedOutput, "PASS")
-	failCaseNum := strings.Count(expectedOutput, "FAIL")
+	passCaseNum := strings.Count(expectedOutput, "   --- PASS")
+	failCaseNum := strings.Count(expectedOutput, "   --- FAIL")
 
 	content, err := json.Marshal(struct {
 		Content string `json:"content"`
@@ -103,7 +119,9 @@ func handleCodeSubmission(w http.ResponseWriter, r *http.Request, assignment db.
 		UserID:       r.Context().Value("id").(int64),
 	})
 	if err != nil {
-		http.Error(w, "Failed to save submission to the database", http.StatusInternalServerError)
+		types.NewJsonResponse(struct {
+			Message string `json:"message"`
+		}{"Ошибка при сохранении попытки в БД"}, http.StatusInternalServerError).Respond(w)
 		log.Println(`{"content":"` + codeSub1.Code + `"}`)
 		log.Println(err)
 		return

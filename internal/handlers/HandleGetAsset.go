@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+
+	"github.com/Rehart-Kcalb/EduNexus-Monolith/internal/types"
 )
 
 func HandleGetAsset() http.HandlerFunc {
@@ -20,7 +22,10 @@ func HandleGetAsset() http.HandlerFunc {
 		// Open the file
 		file, err := os.Open(absolutePath)
 		if err != nil {
-			http.Error(w, "File not found", http.StatusNotFound)
+			types.NewJsonResponse(struct {
+				Message string `json:"message"`
+			}{"Файл не найден"}, http.StatusBadRequest).Respond(w)
+			log.Println(err)
 			return
 		}
 		defer file.Close()
@@ -28,7 +33,9 @@ func HandleGetAsset() http.HandlerFunc {
 		// Get file info
 		fileInfo, err := file.Stat()
 		if err != nil {
-			http.Error(w, "File not found", http.StatusNotFound)
+			types.NewJsonResponse(struct {
+				Message string `json:"message"`
+			}{"Файл не найден"}, http.StatusBadRequest).Respond(w)
 			return
 		}
 
@@ -42,7 +49,9 @@ func HandleGetAsset() http.HandlerFunc {
 		// Copy the file to the response
 		_, err = io.Copy(w, file)
 		if err != nil {
-			http.Error(w, "Unable to send file", http.StatusInternalServerError)
+			types.NewJsonResponse(struct {
+				Message string `json:"message"`
+			}{"Нет возможности отправить файл"}, http.StatusBadRequest).Respond(w)
 		}
 	}
 }

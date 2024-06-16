@@ -15,12 +15,18 @@ func HandleGetCourseInfo(DB *db.Queries) http.HandlerFunc {
 		course_id, err := DB.GetCourseId(context.Background(), course_name)
 		if err != nil {
 			log.Println(err)
+			types.NewJsonResponse(struct {
+				Message string `json:"message"`
+			}{"Нет такого курса"}, http.StatusBadRequest).Respond(w)
 			return
 			// TODO: Do Actually something with errors
 		}
 		teachers, err := DB.GetCourseTeachers(context.Background(), course_id)
 		if err != nil {
 			log.Println(err)
+			types.NewJsonResponse(struct {
+				Message string `json:"message"`
+			}{"Проблемы с БД"}, http.StatusInternalServerError).Respond(w)
 			teachers = []db.GetCourseTeachersRow{}
 			return
 			// TODO: Do Actually something with errors
@@ -29,18 +35,27 @@ func HandleGetCourseInfo(DB *db.Queries) http.HandlerFunc {
 		enrolled, err := DB.GetCourseEnrolledAmount(context.Background(), course_id)
 		if err != nil {
 			log.Println(err)
+			types.NewJsonResponse(struct {
+				Message string `json:"message"`
+			}{"Проблемы с БД"}, http.StatusInternalServerError).Respond(w)
 			return
 			// TODO: Do Actually something with errors
 		}
 		modules, err := DB.GetCourseModules(context.Background(), course_name)
 		if err != nil {
 			log.Println(err)
+			types.NewJsonResponse(struct {
+				Message string `json:"message"`
+			}{"Проблемы с БД"}, http.StatusInternalServerError).Respond(w)
 			return
 			// TODO: Do Actually something with errors
 		}
 		details, err := DB.GetCourseDetails(context.Background(), course_id)
 		if err != nil {
 			log.Println(err)
+			types.NewJsonResponse(struct {
+				Message string `json:"message"`
+			}{"Проблемы с БД"}, http.StatusInternalServerError).Respond(w)
 			return
 			// TODO: Do Actually something with errors
 		}

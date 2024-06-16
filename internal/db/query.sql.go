@@ -58,7 +58,7 @@ func (q *Queries) AllCategories(ctx context.Context) ([]AllCategoriesRow, error)
 		return nil, err
 	}
 	defer rows.Close()
-	var items []AllCategoriesRow
+	items := []AllCategoriesRow{}
 	for rows.Next() {
 		var i AllCategoriesRow
 		if err := rows.Scan(&i.Name, &i.Color); err != nil {
@@ -227,10 +227,8 @@ func (q *Queries) EnrollIntoCourse(ctx context.Context, arg EnrollIntoCoursePara
 	return err
 }
 
-
-
 const getAllSubmissions = `-- name: GetAllSubmissions :many
-select s.id, s.assignment_id, s.delay, s.content, s.info, s.user_id from submissions s 
+select s.id, s.assignment_id, s.delay, s.content, s.info, s.user_id, s.submitted_at from submissions s 
 left join assignments on s.assignment_id = assignments.id
 left join courses on courses.id = assignments.course_id
 where assignments.course_id = $1
@@ -242,7 +240,7 @@ func (q *Queries) GetAllSubmissions(ctx context.Context, courseID int64) ([]Subm
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Submission
+	items := []Submission{}
 	for rows.Next() {
 		var i Submission
 		if err := rows.Scan(
@@ -252,6 +250,7 @@ func (q *Queries) GetAllSubmissions(ctx context.Context, courseID int64) ([]Subm
 			&i.Content,
 			&i.Info,
 			&i.UserID,
+			&i.SubmittedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -289,7 +288,7 @@ func (q *Queries) GetAssignmentById(ctx context.Context, id int64) (GetAssignmen
 }
 
 const getAssignments = `-- name: GetAssignments :many
-select id, module_id, course_id, title, description, content, days, assignment_type_id from assignments where course_id = $1 and assignment_type_id <> 1
+select id, module_id, course_id, title, description, content, days, assignment_type_id, created_at from assignments where course_id = $1 and assignment_type_id <> 1
 `
 
 func (q *Queries) GetAssignments(ctx context.Context, courseID int64) ([]Assignment, error) {
@@ -298,7 +297,7 @@ func (q *Queries) GetAssignments(ctx context.Context, courseID int64) ([]Assignm
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Assignment
+	items := []Assignment{}
 	for rows.Next() {
 		var i Assignment
 		if err := rows.Scan(
@@ -310,6 +309,7 @@ func (q *Queries) GetAssignments(ctx context.Context, courseID int64) ([]Assignm
 			&i.Content,
 			&i.Days,
 			&i.AssignmentTypeID,
+			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -415,7 +415,7 @@ func (q *Queries) GetCourseLectures(ctx context.Context, id int64) ([]GetCourseL
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetCourseLecturesRow
+	items := []GetCourseLecturesRow{}
 	for rows.Next() {
 		var i GetCourseLecturesRow
 		if err := rows.Scan(&i.Title, &i.AssignmentID); err != nil {
@@ -430,7 +430,7 @@ func (q *Queries) GetCourseLectures(ctx context.Context, id int64) ([]GetCourseL
 }
 
 const getCourseLecturesByModuleId = `-- name: GetCourseLecturesByModuleId :many
-select a.id, a.module_id, a.course_id, a.title, a.description, a.content, a.days, a.assignment_type_id from assignments a 
+select a.id, a.module_id, a.course_id, a.title, a.description, a.content, a.days, a.assignment_type_id, a.created_at from assignments a 
 left join modules m on m.id = $1
 where a.assignment_type_id = 1
 `
@@ -441,7 +441,7 @@ func (q *Queries) GetCourseLecturesByModuleId(ctx context.Context, id int64) ([]
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Assignment
+	items := []Assignment{}
 	for rows.Next() {
 		var i Assignment
 		if err := rows.Scan(
@@ -453,6 +453,7 @@ func (q *Queries) GetCourseLecturesByModuleId(ctx context.Context, id int64) ([]
 			&i.Content,
 			&i.Days,
 			&i.AssignmentTypeID,
+			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -480,7 +481,7 @@ func (q *Queries) GetCourseModules(ctx context.Context, title string) ([]string,
 		return nil, err
 	}
 	defer rows.Close()
-	var items []string
+	items := []string{}
 	for rows.Next() {
 		var title string
 		if err := rows.Scan(&title); err != nil {
@@ -516,10 +517,49 @@ func (q *Queries) GetCourseTeachers(ctx context.Context, courseID int64) ([]GetC
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetCourseTeachersRow
+	items := []GetCourseTeachersRow{}
 	for rows.Next() {
 		var i GetCourseTeachersRow
 		if err := rows.Scan(&i.Firstname, &i.Surname, &i.Profile); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getLastGrades = `-- name: GetLastGrades :many
+SELECT distinct(assignments.title), info, submissions.submitted_at FROM public.submissions 
+	left join assignments on assignments.id = submissions.assignment_id
+	left join courses on courses.id = assignments.course_id
+where user_id = $1 and courses.title = $2
+order by submissions.submitted_at desc
+`
+
+type GetLastGradesParams struct {
+	UserID int64  `json:"user_id"`
+	Title  string `json:"title"`
+}
+
+type GetLastGradesRow struct {
+	Title       pgtype.Text `json:"title"`
+	Info        pgtype.Text `json:"info"`
+	SubmittedAt pgtype.Date `json:"submitted_at"`
+}
+
+func (q *Queries) GetLastGrades(ctx context.Context, arg GetLastGradesParams) ([]GetLastGradesRow, error) {
+	rows, err := q.db.Query(ctx, getLastGrades, arg.UserID, arg.Title)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetLastGradesRow{}
+	for rows.Next() {
+		var i GetLastGradesRow
+		if err := rows.Scan(&i.Title, &i.Info, &i.SubmittedAt); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -598,7 +638,7 @@ func (q *Queries) GetMyCourses(ctx context.Context, userID int64) ([]GetMyCourse
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetMyCoursesRow
+	items := []GetMyCoursesRow{}
 	for rows.Next() {
 		var i GetMyCoursesRow
 		if err := rows.Scan(
@@ -636,7 +676,7 @@ func (q *Queries) GetMyTeached(ctx context.Context, userID int64) ([]GetMyTeache
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetMyTeachedRow
+	items := []GetMyTeachedRow{}
 	for rows.Next() {
 		var i GetMyTeachedRow
 		if err := rows.Scan(
@@ -690,7 +730,7 @@ func (q *Queries) GetProfileInfo(ctx context.Context, id int64) (GetProfileInfoR
 
 const getReadedLecturesByModule = `-- name: GetReadedLecturesByModule :many
 SELECT 
-    m.id AS module_id,
+    distinct(m.id) AS module_id,
     m.title AS module_name,
     a.id AS assignment_id,
 	a.assignment_type_id,
@@ -723,7 +763,7 @@ func (q *Queries) GetReadedLecturesByModule(ctx context.Context, arg GetReadedLe
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetReadedLecturesByModuleRow
+	items := []GetReadedLecturesByModuleRow{}
 	for rows.Next() {
 		var i GetReadedLecturesByModuleRow
 		if err := rows.Scan(

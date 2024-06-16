@@ -31,31 +31,31 @@ services:
       postgres:
         condition: service_started
 
-  edunexus:
-    container_name: "edunexus_container"
-    build:
-      context: "."
-      dockerfile: Dockerfile
-    environment:
-      DB_NAME: "${DB_NAME}"
-      DB_USERNAME: "${DB_USERNAME}"
-      DB_PASSWORD: "${DB_PASSWORD}"
-      DB_PORT: "${DB_PORT}"
-      DB_HOST: "postgres"
-      #DOCKER_HOST: tcp://docker:2375/
-      DOCKER_HOST: tcp://localhost:2376
-      DOCKER_TLS_VERIFY: 1
-      DOCKER_CERT_PATH: /certs/client
-    volumes:
-      - /var/lib/docker
-      - /certs/client
-    ports:
-      - "80:8080"
-    depends_on: 
-      postgres:
-        condition: service_started
-    restart: always
-    privileged: true
+  # edunexus:
+  #   container_name: "edunexus_container"
+  #   build:
+  #     context: "."
+  #     dockerfile: Dockerfile
+  #   environment:
+  #     DB_NAME: "${DB_NAME}"
+  #     DB_USERNAME: "${DB_USERNAME}"
+  #     DB_PASSWORD: "${DB_PASSWORD}"
+  #     DB_PORT: "${DB_PORT}"
+  #     DB_HOST: "postgres"
+  #     #DOCKER_HOST: tcp://docker:2375/
+  #     DOCKER_HOST: tcp://localhost:2376
+  #     DOCKER_TLS_VERIFY: 1
+  #     DOCKER_CERT_PATH: /certs/client
+  #   volumes:
+  #     - /var/lib/docker
+  #     - /certs/client
+  #   ports:
+  #     - "80:8080"
+  #   depends_on: 
+  #     postgres:
+  #       condition: service_started
+  #   restart: always
+  #   privileged: true
 
 volumes:
   pgadmin-data:

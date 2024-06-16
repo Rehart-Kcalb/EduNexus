@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -28,12 +27,17 @@ func HandleUpdateProfileInfo(DB *db.Queries) http.HandlerFunc {
 
 		filePath, err := utils.SaveBase64ToFile(post_data.Profile, "storage")
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Error saving file: %v", err), http.StatusInternalServerError)
+			types.NewJsonResponse(struct {
+				Message any `json:"message"`
+			}{"Проблемы с сохранением аватарки"}, http.StatusInternalServerError).Respond(w)
 			return
 		}
 		log.Println(filePath)
 		err = DB.UpdateProfileInfo(context.Background(), db.UpdateProfileInfoParams{Firstname: pgtype.Text{String: post_data.FirstName, Valid: true}, Description: pgtype.Text{String: post_data.Description, Valid: true}, Profile: pgtype.Text{String: filePath, Valid: true}, ID: r.Context().Value("id").(int64)})
 		if err != nil {
+			types.NewJsonResponse(struct {
+				Message any `json:"message"`
+			}{"Проблемы с БД"}, http.StatusInternalServerError).Respond(w)
 			return
 		}
 		types.NewJsonResponse(struct {

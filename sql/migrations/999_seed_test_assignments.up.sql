@@ -17,11 +17,11 @@ VALUES
     1,
     1,
     'Summator',
-    '',
+    'Напишите функцию, которая принимает два числа int и возвращает их сумму',
     '{
-            "language": "go",
-            "code_test": "package main\n\nimport \"testing\"\n\n// sumator adds two integers and returns the result\n// TestSumator tests the sumator function\nfunc TestSumator(t *testing.T) {\n    tests := []struct {\n        i1, i2, expected int\n    }{\n        {1, 2, 3},\n        {-1, -1, -2},\n        {0, 0, 0},\n        {123, 456, 579},\n    }\n\n    for _, test := range tests {\n        result := sumator(test.i1, test.i2)\n        if result != test.expected {\n            t.Errorf(\"sumator(%d, %d) = %d; want %d\", test.i1, test.i2, result, test.expected)\n        }\n    }\n}",
-            "quiz_question": ""
+    "language": "go",
+    "code_test": "package main\n\nimport (\n\t\"testing\"\n)\n\n// sumator adds two integers and returns the result\n// TestSumator tests the sumator function\nfunc TestSumator(t *testing.T) {\n\t// Define some test cases\n\ttests := []struct {\n\t\tname     string\n\t\ti1, i2   int\n\t\texpected int\n\t}{\n\t\t{name: \"positive numbers\", i1: 1, i2: 2, expected: 3},\n\t\t{name: \"negative numbers\", i1: -1, i2: -1, expected: -2},\n\t\t{name: \"zeroes\", i1: 0, i2: 0, expected: 0},\n\t\t{name: \"larger numbers\", i1: 123, i2: 456, expected: 579},\n\t}\n\n\tfor _, tc := range tests {\n\t\tt.Run(tc.name, func(t *testing.T) {\n\t\t\tresult := sumator(tc.i1, tc.i2)\n\t\t\tif result != tc.expected {\n\t\t\t\tt.Errorf(\"sumator(%d, %d) = %d; want %d\", tc.i1, tc.i2, result, tc.expected)\n\t\t\t}\n\t\t})\n\t}\n}\n\n",
+    "quiz_question": ""
     }',
     null,
     3

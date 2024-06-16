@@ -24,7 +24,7 @@ func HandleGetCourses(DB *db.Queries) http.HandlerFunc {
 			types.NewJsonResponse(struct {
 				Courses any   `json:"courses"`
 				Count   int64 `json:"pages"`
-			}{[]any{}, 1}, http.StatusOK).Respond(w)
+			}{courses, 1}, http.StatusOK).Respond(w)
 			return
 			types.NewJsonResponse("Problem with DB", http.StatusInternalServerError).Respond(w)
 			return
