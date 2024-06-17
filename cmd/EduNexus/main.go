@@ -75,6 +75,7 @@ func LoadMuxWithHandlers(m *http.ServeMux, DB *db.Queries) {
 	m.HandleFunc("GET /api/categories/{category_name}", handlers.HandleGetCategoryCourses(DB))
 	// * Gets all available courses (GET /api/courses/)
 	m.HandleFunc("GET /api/courses/", handlers.HandleGetCourses(DB))
+	m.HandleFunc("GET /api/popular/", handlers.HandleGetPopularCourses(DB))
 	// * Gets information about a specific course (GET /api/courses/{course_name}/)
 	m.HandleFunc("GET /api/courses/{course_name}/", handlers.HandleGetCourseInfo(DB))
 	// * Gets modules for a specific course (GET /api/courses/{course_name}/modules)

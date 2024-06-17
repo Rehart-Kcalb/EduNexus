@@ -18,7 +18,7 @@ func HandleGetAssignments(DB *db.Queries) http.HandlerFunc {
 			}{"Нет такого курса"}, http.StatusBadRequest).Respond(w)
 			log.Println(err)
 		}
-		assignments, err := DB.GetAssignments(context.Background(), course_id)
+		assignments, err := DB.GetAssignments(context.Background(), db.GetAssignmentsParams{CourseID: course_id, UserID: r.Context().Value("id").(int64)})
 		if err != nil {
 			log.Println(err)
 			types.NewJsonResponse(struct {

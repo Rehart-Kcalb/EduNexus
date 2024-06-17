@@ -288,18 +288,49 @@ func (q *Queries) GetAssignmentById(ctx context.Context, id int64) (GetAssignmen
 }
 
 const getAssignments = `-- name: GetAssignments :many
-select id, module_id, course_id, title, description, content, days, assignment_type_id, created_at from assignments where course_id = $1 and assignment_type_id <> 1
+SELECT DISTINCT
+    a.id, a.module_id, a.course_id, a.title, a.description, a.content, a.days, a.assignment_type_id, a.created_at,
+    m.title as module_name,
+    COALESCE(pr.done IS NOT NULL, FALSE) AS completed
+FROM 
+    assignments a
+LEFT JOIN 
+    progress pr ON a.id = pr.assignment_id AND pr.user_id = $2
+left join
+    modules m on a.module_id = m.id
+WHERE  
+    a.course_id = $1 
+    AND a.assignment_type_id <> 1
 `
 
-func (q *Queries) GetAssignments(ctx context.Context, courseID int64) ([]Assignment, error) {
-	rows, err := q.db.Query(ctx, getAssignments, courseID)
+type GetAssignmentsParams struct {
+	CourseID int64 `json:"course_id"`
+	UserID   int64 `json:"user_id"`
+}
+
+type GetAssignmentsRow struct {
+	ID               int64       `json:"id"`
+	ModuleID         int64       `json:"module_id"`
+	CourseID         int64       `json:"course_id"`
+	Title            string      `json:"title"`
+	Description      string      `json:"description"`
+	Content          []byte      `json:"content"`
+	Days             pgtype.Int4 `json:"days"`
+	AssignmentTypeID int64       `json:"assignment_type_id"`
+	CreatedAt        pgtype.Date `json:"created_at"`
+	ModuleName       pgtype.Text `json:"module_name"`
+	Completed        interface{} `json:"completed"`
+}
+
+func (q *Queries) GetAssignments(ctx context.Context, arg GetAssignmentsParams) ([]GetAssignmentsRow, error) {
+	rows, err := q.db.Query(ctx, getAssignments, arg.CourseID, arg.UserID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []Assignment{}
+	items := []GetAssignmentsRow{}
 	for rows.Next() {
-		var i Assignment
+		var i GetAssignmentsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.ModuleID,
@@ -310,6 +341,8 @@ func (q *Queries) GetAssignments(ctx context.Context, courseID int64) ([]Assignm
 			&i.Days,
 			&i.AssignmentTypeID,
 			&i.CreatedAt,
+			&i.ModuleName,
+			&i.Completed,
 		); err != nil {
 			return nil, err
 		}
@@ -398,19 +431,40 @@ func (q *Queries) GetCourseId(ctx context.Context, title string) (int64, error) 
 }
 
 const getCourseLectures = `-- name: GetCourseLectures :many
-select a.title, a.id  as assignment_id from courses c 
-left join modules m on m.course_id = c.id
-left join assignments a on a.module_id = m.id
-where  c.id = $1 and a.id is not null and a.assignment_type_id = 1
+SELECT DISTINCT
+    a.title,
+    a.id AS assignment_id,
+    COALESCE(pr.done IS NOT NULL, FALSE) AS read,
+    m.title as module_name
+FROM 
+    courses c 
+LEFT JOIN 
+    modules m ON m.course_id = c.id
+LEFT JOIN 
+    assignments a ON a.module_id = m.id
+LEFT JOIN 
+    progress pr ON a.id = pr.assignment_id AND pr.user_id = $2
+WHERE  
+    c.id = $1
+    AND a.id IS NOT NULL 
+    AND a.assignment_type_id = 1
+order by a.id asc
 `
+
+type GetCourseLecturesParams struct {
+	ID     int64 `json:"id"`
+	UserID int64 `json:"user_id"`
+}
 
 type GetCourseLecturesRow struct {
 	Title        pgtype.Text `json:"title"`
 	AssignmentID pgtype.Int8 `json:"assignment_id"`
+	Read         interface{} `json:"read"`
+	ModuleName   pgtype.Text `json:"module_name"`
 }
 
-func (q *Queries) GetCourseLectures(ctx context.Context, id int64) ([]GetCourseLecturesRow, error) {
-	rows, err := q.db.Query(ctx, getCourseLectures, id)
+func (q *Queries) GetCourseLectures(ctx context.Context, arg GetCourseLecturesParams) ([]GetCourseLecturesRow, error) {
+	rows, err := q.db.Query(ctx, getCourseLectures, arg.ID, arg.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -418,7 +472,12 @@ func (q *Queries) GetCourseLectures(ctx context.Context, id int64) ([]GetCourseL
 	items := []GetCourseLecturesRow{}
 	for rows.Next() {
 		var i GetCourseLecturesRow
-		if err := rows.Scan(&i.Title, &i.AssignmentID); err != nil {
+		if err := rows.Scan(
+			&i.Title,
+			&i.AssignmentID,
+			&i.Read,
+			&i.ModuleName,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -711,6 +770,60 @@ func (q *Queries) GetPasswordByLogin(ctx context.Context, login string) (string,
 	return password, err
 }
 
+const getPopularCourses = `-- name: GetPopularCourses :many
+SELECT
+    c.title,
+    u.firstname AS organization_name,
+    u.profile AS organization_logo,
+    c.image
+FROM
+    courses c
+LEFT JOIN
+    users u ON u.id = c.course_provider
+INNER JOIN
+    (SELECT 
+        course_id, 
+        COUNT(user_id) AS enrolled 
+     FROM 
+        enrollments 
+     GROUP BY 
+        course_id) enrolled_counts ON enrolled_counts.course_id = c.id
+ORDER BY
+    enrolled_counts.enrolled DESC
+`
+
+type GetPopularCoursesRow struct {
+	Title            string      `json:"title"`
+	OrganizationName pgtype.Text `json:"organization_name"`
+	OrganizationLogo pgtype.Text `json:"organization_logo"`
+	Image            pgtype.Text `json:"image"`
+}
+
+func (q *Queries) GetPopularCourses(ctx context.Context) ([]GetPopularCoursesRow, error) {
+	rows, err := q.db.Query(ctx, getPopularCourses)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetPopularCoursesRow{}
+	for rows.Next() {
+		var i GetPopularCoursesRow
+		if err := rows.Scan(
+			&i.Title,
+			&i.OrganizationName,
+			&i.OrganizationLogo,
+			&i.Image,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getProfileInfo = `-- name: GetProfileInfo :one
 select firstname,description,profile from users where users.id = $1
 `
@@ -732,6 +845,7 @@ const getReadedLecturesByModule = `-- name: GetReadedLecturesByModule :many
 SELECT 
     distinct(m.id) AS module_id,
     m.title AS module_name,
+    a.title,
     a.id AS assignment_id,
 	a.assignment_type_id,
     COALESCE(pr.done IS NOT NULL, FALSE) AS read
@@ -752,6 +866,7 @@ type GetReadedLecturesByModuleParams struct {
 type GetReadedLecturesByModuleRow struct {
 	ModuleID         int64       `json:"module_id"`
 	ModuleName       string      `json:"module_name"`
+	Title            pgtype.Text `json:"title"`
 	AssignmentID     pgtype.Int8 `json:"assignment_id"`
 	AssignmentTypeID pgtype.Int8 `json:"assignment_type_id"`
 	Read             interface{} `json:"read"`
@@ -769,6 +884,7 @@ func (q *Queries) GetReadedLecturesByModule(ctx context.Context, arg GetReadedLe
 		if err := rows.Scan(
 			&i.ModuleID,
 			&i.ModuleName,
+			&i.Title,
 			&i.AssignmentID,
 			&i.AssignmentTypeID,
 			&i.Read,

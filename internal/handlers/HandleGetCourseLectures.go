@@ -19,7 +19,7 @@ func HandleGetCourseLectures(DB *db.Queries) http.HandlerFunc {
 			}{"Нет такого курса"}, http.StatusBadRequest).Respond(w)
 			return
 		}
-		lectures, err := DB.GetCourseLectures(context.Background(), course_id)
+		lectures, err := DB.GetCourseLectures(context.Background(), db.GetCourseLecturesParams{ID: course_id, UserID: r.Context().Value("id").(int64)})
 		if err != nil {
 			// TODO
 			types.NewJsonResponse(struct {

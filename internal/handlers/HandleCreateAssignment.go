@@ -89,6 +89,9 @@ func HandleCreateAssignment(DB *db.Queries) http.HandlerFunc {
 		if err != nil {
 			log.Println(err)
 		}
+		types.NewJsonResponse(struct {
+			ErrorMessage string `json:"message"`
+		}{"success"}, http.StatusBadRequest).Respond(w)
 	}
 }
 

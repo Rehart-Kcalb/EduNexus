@@ -65,5 +65,19 @@ func handleQuizSubmission(w http.ResponseWriter, r *http.Request, assignment db.
 
 	// TODO: Save grade to the database
 	//	fmt.Sprintf("%d/%d", grade, len(quiz1.Answers))
-	DB.CreateSubmission(context.Background(), db.CreateSubmissionParams{Info: pgtype.Text{String: fmt.Sprintf("%d/%d", grade, len(quiz1.Answers))}, AssignmentID: assignment.ID, Content: buff, UserID: r.Context().Value("id").(int64)})
+	err = DB.CreateSubmission(context.Background(), db.CreateSubmissionParams{Info: pgtype.Text{String: fmt.Sprintf("%d/%d", grade, len(quiz1.Answers))}, AssignmentID: assignment.ID, Content: buff, UserID: r.Context().Value("id").(int64)})
+	if err != nil {
+		types.NewJsonResponse(struct {
+			Message string `json:"message"`
+		}{"Ошибка при сохранении попытки в БД"}, http.StatusInternalServerError).Respond(w)
+	}
+	if grade == len(quiz1.Answers) {
+		err = DB.MarkAssignmentDone(context.Background(), db.MarkAssignmentDoneParams{UserID: r.Context().Value("id").(int64), AssignmentID: assignment.ID})
+		if err != nil {
+			types.NewJsonResponse(struct {
+				Message string `json:"message"`
+			}{"Ошибка в БД"}, http.StatusInternalServerError).Respond(w)
+		}
+
+	}
 }

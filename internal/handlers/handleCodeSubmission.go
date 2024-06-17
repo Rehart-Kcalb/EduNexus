@@ -126,7 +126,14 @@ func handleCodeSubmission(w http.ResponseWriter, r *http.Request, assignment db.
 		log.Println(err)
 		return
 	}
-
+	if passCaseNum != 0 && failCaseNum == 0 {
+		err = DB.MarkAssignmentDone(context.Background(), db.MarkAssignmentDoneParams{UserID: r.Context().Value("id").(int64), AssignmentID: assignment.ID})
+		if err != nil {
+			types.NewJsonResponse(struct {
+				Message string `json:"message"`
+			}{"Ошибка в БД"}, http.StatusInternalServerError).Respond(w)
+		}
+	}
 	types.NewJsonResponse(struct {
 		Passed string `json:"test_passed"`
 	}{fmt.Sprintf("%d/%d", passCaseNum, passCaseNum+failCaseNum)}, http.StatusOK).Respond(w)

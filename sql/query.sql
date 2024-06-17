@@ -85,10 +85,24 @@ select count(id) from enrollments where enrollments.course_id = $1;
 select id from courses where title = $1 limit 1;
 
 -- name: GetCourseLectures :many
-select a.title, a.id  as assignment_id from courses c 
-left join modules m on m.course_id = c.id
-left join assignments a on a.module_id = m.id
-where  c.id = $1 and a.id is not null and a.assignment_type_id = 1;
+SELECT DISTINCT
+    a.title,
+    a.id AS assignment_id,
+    COALESCE(pr.done IS NOT NULL, FALSE) AS read,
+    m.title as module_name
+FROM 
+    courses c 
+LEFT JOIN 
+    modules m ON m.course_id = c.id
+LEFT JOIN 
+    assignments a ON a.module_id = m.id
+LEFT JOIN 
+    progress pr ON a.id = pr.assignment_id AND pr.user_id = $2
+WHERE  
+    c.id = $1
+    AND a.id IS NOT NULL 
+    AND a.assignment_type_id = 1
+order by a.id asc;
 
 -- name: GetLectureContent :one
 select title, content::text from assignments
@@ -118,7 +132,20 @@ select id from categories where name=$1 limit 1;
 select count(title) from filter($1,$2::bigint[]);
 
 -- name: GetAssignments :many
-select * from assignments where course_id = $1 and assignment_type_id <> 1;
+SELECT DISTINCT
+    a.*,
+    m.title as module_name,
+    COALESCE(pr.done IS NOT NULL, FALSE) AS completed
+FROM 
+    assignments a
+LEFT JOIN 
+    progress pr ON a.id = pr.assignment_id AND pr.user_id = $2
+left join
+    modules m on a.module_id = m.id
+WHERE  
+    a.course_id = $1 
+    AND a.assignment_type_id <> 1;
+
 
 -- name: GetAssignmentById :one
 select id,title,content::text,description,assignment_type_id from assignments where id = $1 limit 1;
@@ -152,6 +179,7 @@ Insert into modules(title,course_id) values ($1,$2) returning id;
 SELECT 
     distinct(m.id) AS module_id,
     m.title AS module_name,
+    a.title,
     a.id AS assignment_id,
 	a.assignment_type_id,
     COALESCE(pr.done IS NOT NULL, FALSE) AS read
@@ -190,3 +218,24 @@ SELECT distinct(assignments.title), info, submissions.submitted_at FROM public.s
 	left join courses on courses.id = assignments.course_id
 where user_id = $1 and courses.title = $2
 order by submissions.submitted_at desc;
+
+-- name: GetPopularCourses :many
+SELECT
+    c.title,
+    u.firstname AS organization_name,
+    u.profile AS organization_logo,
+    c.image
+FROM
+    courses c
+LEFT JOIN
+    users u ON u.id = c.course_provider
+INNER JOIN
+    (SELECT 
+        course_id, 
+        COUNT(user_id) AS enrolled 
+     FROM 
+        enrollments 
+     GROUP BY 
+        course_id) enrolled_counts ON enrolled_counts.course_id = c.id
+ORDER BY
+    enrolled_counts.enrolled DESC;
