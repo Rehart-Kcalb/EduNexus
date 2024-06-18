@@ -135,7 +135,7 @@ select count(title) from filter($1,$2::bigint[]);
 SELECT DISTINCT
     a.*,
     m.title as module_name,
-    COALESCE(pr.done IS NOT NULL, FALSE) AS completed
+    COALESCE(pr.done IS NOT NULL, FALSE) AS read
 FROM 
     assignments a
 LEFT JOIN 
@@ -239,3 +239,6 @@ INNER JOIN
         course_id) enrolled_counts ON enrolled_counts.course_id = c.id
 ORDER BY
     enrolled_counts.enrolled DESC;
+
+-- name: DropCourse :exec
+Delete from enrollments where user_id = $1 and course_id = $2;

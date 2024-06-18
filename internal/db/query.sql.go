@@ -206,6 +206,20 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
 	return err
 }
 
+const dropCourse = `-- name: DropCourse :exec
+Delete from enrollments where user_id = $1 and course_id = $2
+`
+
+type DropCourseParams struct {
+	UserID   int64 `json:"user_id"`
+	CourseID int64 `json:"course_id"`
+}
+
+func (q *Queries) DropCourse(ctx context.Context, arg DropCourseParams) error {
+	_, err := q.db.Exec(ctx, dropCourse, arg.UserID, arg.CourseID)
+	return err
+}
+
 const enrollIntoCourse = `-- name: EnrollIntoCourse :exec
 INSERT INTO
   enrollments (course_id, user_id, enrolled_on)
@@ -226,6 +240,7 @@ func (q *Queries) EnrollIntoCourse(ctx context.Context, arg EnrollIntoCoursePara
 	_, err := q.db.Exec(ctx, enrollIntoCourse, arg.CourseID, arg.UserID)
 	return err
 }
+
 
 const getAllSubmissions = `-- name: GetAllSubmissions :many
 select s.id, s.assignment_id, s.delay, s.content, s.info, s.user_id, s.submitted_at from submissions s 
@@ -291,7 +306,7 @@ const getAssignments = `-- name: GetAssignments :many
 SELECT DISTINCT
     a.id, a.module_id, a.course_id, a.title, a.description, a.content, a.days, a.assignment_type_id, a.created_at,
     m.title as module_name,
-    COALESCE(pr.done IS NOT NULL, FALSE) AS completed
+    COALESCE(pr.done IS NOT NULL, FALSE) AS read
 FROM 
     assignments a
 LEFT JOIN 
@@ -319,7 +334,7 @@ type GetAssignmentsRow struct {
 	AssignmentTypeID int64       `json:"assignment_type_id"`
 	CreatedAt        pgtype.Date `json:"created_at"`
 	ModuleName       pgtype.Text `json:"module_name"`
-	Completed        interface{} `json:"completed"`
+	Read             interface{} `json:"read"`
 }
 
 func (q *Queries) GetAssignments(ctx context.Context, arg GetAssignmentsParams) ([]GetAssignmentsRow, error) {
@@ -342,7 +357,7 @@ func (q *Queries) GetAssignments(ctx context.Context, arg GetAssignmentsParams) 
 			&i.AssignmentTypeID,
 			&i.CreatedAt,
 			&i.ModuleName,
-			&i.Completed,
+			&i.Read,
 		); err != nil {
 			return nil, err
 		}

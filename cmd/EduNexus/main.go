@@ -86,6 +86,7 @@ func LoadMuxWithHandlers(m *http.ServeMux, DB *db.Queries) {
 	// **Course Enrollment (requires authentication)**
 	// * Enrolls a user in a course (POST /api/courses/{course_name})
 	m.HandleFunc("POST /api/courses/{course_name}", middleware.Auth(handlers.HandleEnrollCourse(DB)))
+	m.HandleFunc("POST /api/courses/{course_name}/exit", middleware.Auth(handlers.HandleCourseLeave(DB)))
 
 	// **Learning Management (requires authentication)**
 	// * Gets an assignments for a specific course (GET /api/learning/{course_name}/assignments)
