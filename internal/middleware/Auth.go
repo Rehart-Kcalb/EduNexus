@@ -19,7 +19,7 @@ func Auth(handler http.HandlerFunc) http.HandlerFunc {
 			http.Redirect(w, r, "/api/login", 301)
 			return
 		}
-		if is_valid := VerifyToken(token); !is_valid {
+		if is_valid := verifyToken(token); !is_valid {
 			log.Println(token)
 			http.Redirect(w, r, "/api/login", 301)
 			return
@@ -39,6 +39,6 @@ func Auth(handler http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func VerifyToken(token string) bool {
+func verifyToken(token string) bool {
 	return true
 }
