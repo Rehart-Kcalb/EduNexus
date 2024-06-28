@@ -1,3 +1,5 @@
+-- +goose Up
+-- +goose StatementBegin
 CREATE OR REPLACE FUNCTION filter(
     title_param text, 
     category_ids bigint[]
@@ -69,3 +71,9 @@ BEGIN
     END IF;
 END;
 $$ LANGUAGE plpgsql;
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+DROP procedure if EXISTS filter;
+-- +goose StatementEnd
