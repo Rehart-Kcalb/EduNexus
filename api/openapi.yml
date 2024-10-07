@@ -90,6 +90,11 @@ paths:
         - course_manage
       operationId: handleGetCategoryCourses
       parameters:
+        - name: category_name
+          in: path
+          required: true
+          schema:
+            type: string
         - $ref: "#/components/parameters/limParam"
         - $ref: "#/components/parameters/offsetParam"
       responses:
