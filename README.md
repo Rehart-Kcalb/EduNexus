@@ -1,4 +1,4 @@
-# EduNexus-Monolith
+# EduNexus
 
 ## RUN Project
 
